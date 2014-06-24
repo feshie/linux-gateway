@@ -7,12 +7,11 @@ import Queue
 import io
 import urllib2
 import thread
-import random
 
 HOST_NAME = 'localhost' # Change this!
 PORT_NUMBER = 8080 # Change this!
 
-POST_PROXY = 'http://localhost:9000/upload' # The address of the server after the proxy. Change this too!
+NEXT_SERVER = 'http://localhost:9000/upload' # The address of the server after the proxy. Change this too!
 
 queue = Queue.Queue(128)
 
@@ -40,11 +39,16 @@ class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 def processQueue():
     opener = urllib2.build_opener(urllib2.HTTPHandler)
     while True:
-        element = queue.get()
-        request = urllib2.Request(POST_PROXY, data=element)
-        request.add_header('Content-Type', 'raw')
-        request.get_method = lambda: 'PUT' # Hacky, but it works!
-        url = opener.open(request)
+        try:
+            element = queue.get()
+            request = urllib2.Request(NEXT_SERVER, data=element)
+            request.add_header('Content-Type', 'raw')
+            request.get_method = lambda: 'PUT' # Hacky, but it works!
+            url = opener.open(request)
+        except Exception:
+            print "Unable to connect to server, will try again later"
+            queue.put(element)
+            time.sleep(1)
 
 if __name__ == '__main__':
     thread.start_new_thread(processQueue, ())
