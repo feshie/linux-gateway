@@ -7,13 +7,12 @@ import Queue
 import io
 import urllib2
 import thread
+import socket
 
-HOST_NAME = 'localhost' # Change this!
+HOST_NAME = '0:0:0:0:0:0:0:1' # Change this!
 PORT_NUMBER = 8080 # Change this!
 
 NEXT_SERVER = 'http://localhost:9000/upload' # The address of the server after the proxy. Change this too!
-
-queue = Queue.Queue(128)
 
 class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
     def do_HEAD(s):
@@ -28,7 +27,7 @@ class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
         s.wfile.write("<body><p>PUT/POST Proxy</p>")
 
     def do_POST(s):
-        queue.put(s.rfile.read(int(s.headers.getheader('content-length'))))
+        #queue.put(s.rfile.read(int(s.headers.getheader('content-length'))))
         s.send_response(204)
         s.send_header("Content-type", "text/html")
         s.end_headers()
@@ -40,20 +39,23 @@ def processQueue():
     opener = urllib2.build_opener(urllib2.HTTPHandler)
     while True:
         try:
-            element = queue.get()
-            request = urllib2.Request(NEXT_SERVER, data=element)
-            request.add_header('Content-Type', 'raw')
-            request.get_method = lambda: 'PUT' # Hacky, but it works!
-            url = opener.open(request)
-        except Exception:
-            print "Unable to connect to server, will try again later"
-            queue.put(element)
+            #element = queue.get()
+            #request = urllib2.Request(NEXT_SERVER, data=element)
+            #request.add_header('Content-Type', 'raw')
+            #request.get_method = lambda: 'PUT' # Hacky, but it works!
+            #url = opener.open(request)
+            pass
+        except Exception, e:
+            print e
+            #queue.put(element)
             time.sleep(1)
+
+class HTTPServerV6(BaseHTTPServer.HTTPServer):
+    address_family = socket.AF_INET6
 
 if __name__ == '__main__':
     thread.start_new_thread(processQueue, ())
-    server_class = BaseHTTPServer.HTTPServer
-    httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
+    httpd = HTTPServerV6((HOST_NAME, PORT_NUMBER), MyHandler)
     print time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER)
     try:
         httpd.serve_forever()
