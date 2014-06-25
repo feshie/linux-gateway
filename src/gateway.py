@@ -5,6 +5,7 @@ import BaseHTTPServer
 import CGIHTTPServer
 import Queue
 import io
+import os
 import urllib2
 import thread
 import socket
@@ -16,20 +17,20 @@ NEXT_SERVER = 'http://localhost:9000/upload' # The address of the server after t
 
 class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
     def do_HEAD(s):
-        s.send_response(200)
-        s.send_header("Content-type", "text/html")
+        s.send_response(204)
         s.end_headers()
     def do_GET(s):
-        s.send_response(200)
-        s.send_header("Content-type", "text/html")
-        s.end_headers()
-        s.wfile.write("<html><head><title>%s</title></head>" % (s.path))
-        s.wfile.write("<body><p>PUT/POST Proxy</p>")
-
-    def do_POST(s):
-        #queue.put(s.rfile.read(int(s.headers.getheader('content-length'))))
         s.send_response(204)
-        s.send_header("Content-type", "text/html")
+        s.end_headers()
+    def do_POST(s):
+        # Queue the file on disk
+        filename = "queue/" + str(int(time.time() * 1000000)) + "_" + s.client_address[0]
+        if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename))
+        fh = open(filename, 'w')
+        data = s.rfile.read(int(s.headers.getheader('content-length')))
+        fh.write(data.decode())
+        s.send_response(204)
         s.end_headers()
     def do_PUT(s):
 	do_POST(s)
@@ -39,15 +40,18 @@ def processQueue():
     opener = urllib2.build_opener(urllib2.HTTPHandler)
     while True:
         try:
-            #element = queue.get()
-            #request = urllib2.Request(NEXT_SERVER, data=element)
-            #request.add_header('Content-Type', 'raw')
-            #request.get_method = lambda: 'PUT' # Hacky, but it works!
-            #url = opener.open(request)
-            pass
+            if len(os.listdir("queue")) > 0:
+                filename = "queue/" + os.listdir("queue")[0]
+                fh = open(filename, 'r')
+                data = fh.read()
+                request = urllib2.Request(NEXT_SERVER, data=data)
+                request.add_header('Content-Type', 'raw')
+                url = opener.open(request)
+                os.remove(filename)
+            else:
+                time.sleep(1)
         except Exception, e:
             print e
-            #queue.put(element)
             time.sleep(1)
 
 class HTTPServerV6(BaseHTTPServer.HTTPServer):
