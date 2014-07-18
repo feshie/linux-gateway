@@ -12,6 +12,7 @@ import urllib2
 import thread
 import socket
 import sys
+import SocketServer
 
 HOST_NAME = '0:0:0:0:0:0:0:1' # Change this!
 PORT_NUMBER = 8080 # Change this!
@@ -62,7 +63,7 @@ def processQueue():
             print(e, file=sys.stderr)
             time.sleep(1)
 
-class HTTPServerV6(BaseHTTPServer.HTTPServer):
+class HTTPServerV6(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     address_family = socket.AF_INET6
 
 if __name__ == '__main__':
