@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import signal
 import time
 import BaseHTTPServer
 import CGIHTTPServer
@@ -14,10 +15,12 @@ import socket
 import sys
 import SocketServer
 
-HOST_NAME = '0:0:0:0:0:0:0:1' # Change this!
-PORT_NUMBER = 8080 # Change this!
+HOST_NAME = '2001:630:d0:f111:224:e8ff:fe38:6cf2' # Change this!
+PORT_NUMBER = 8081 # Change this!
 
-NEXT_SERVER = 'http://localhost:9000/upload' # The address of the server after the proxy. Change this too!
+NEXT_SERVER = 'http://env.ecs.soton.ac.uk/from-gateway/upload.php' # The address of the server after the proxy. Change this too!
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
     def do_HEAD(s):
@@ -33,7 +36,7 @@ class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
             os.makedirs(os.path.dirname(filename))
         data = s.rfile.read(int(s.headers.getheader('content-length')))
         fh = open(filename, 'w')
-        fh.write(data.decode())
+        fh.write(data)
         s.send_response(204)
         s.end_headers()
 
@@ -47,10 +50,10 @@ def processQueue():
         try:
             if len(os.listdir("queue")) > 0:
                 filename = "queue/" + os.listdir("queue")[0]
+		from_ip = filename.split("_")[1]
                 fh = open(filename, 'r')
                 data = fh.read()
-                request = urllib2.Request(NEXT_SERVER, data=data)
-                request.add_header('Content-Type', 'raw')
+                request = urllib2.Request(NEXT_SERVER + "?ip=" + from_ip, data=data)
                 url = opener.open(request)
                 print("Status = %s" % url.getcode())
                 if int(url.getcode()/100) == 2:
