@@ -72,10 +72,10 @@ class HTTPServerV6(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
 if __name__ == '__main__':
     thread.start_new_thread(processQueue, ())
     httpd = HTTPServerV6((HOST_NAME, PORT_NUMBER), MyHandler)
-    print(time.asctime(), "Server Starts - %s:%s" % (HOST_NAME, PORT_NUMBER))
+    print(time.asctime(), "Server Starts - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print(time.asctime(), "Server Stops - %s:%s" % (HOST_NAME, PORT_NUMBER))
+    print(time.asctime(), "Server Stops - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
