@@ -15,6 +15,9 @@ import thread
 import socket
 import sys
 import SocketServer
+import logging
+from optparse import OptionParser, OptionGroup
+
 from gateway_config import *
 
 
@@ -68,12 +71,34 @@ class HTTPServerV6(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     address_family = socket.AF_INET6
 
 if __name__ == '__main__':
+    LOG_LEVEL = DEFAULT_LOG_LEVEL
+    PARSER = OptionParser()
+    GROUP = OptionGroup(PARSER, "Verbosity Options",
+        "Options to change the level of output")
+    GROUP.add_option("-q", "--quiet", action="store_true",
+          dest="quiet", default=False,
+          help="Supress all but critical errors")
+    GROUP.add_option("-v", "--verbose", action="store_true",
+          dest="verbose", default=False,
+          help="Print all information available")
+    PARSER.add_option_group(GROUP)
+    (OPTIONS, ARGS) = PARSER.parse_args()
+    if OPTIONS.quiet:
+        LOG_LEVEL = logging.CRITICAL
+    elif OPTIONS.verbose:
+        LOG_LEVEL = logging.DEBUG
+    logging.basicConfig(
+      format='%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s - %(message)s')
+    LOGGER = logging.getLogger("Gateway Main")
+    LOGGER.setLevel(LOG_LEVEL)
+    LOGGER.debug("Starting new thread")
     thread.start_new_thread(processQueue, ())
     httpd = HTTPServerV6((HOST_NAME, PORT_NUMBER), MyHandler)
-    print(time.asctime(), "Server Starts - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
+    LOGGER.info("Listening on - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
+    LOGGER.info("Next Server: %s" % NEXT_SERVER)
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
         pass
     httpd.server_close()
-    print(time.asctime(), "Server Stops - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
+    LOGGER.info("Server Stops - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
