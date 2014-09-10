@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 #Derived from https://wiki.python.org/moin/BaseHttpServer#CA-86c92a7a96bb671a2cb7471059da597b6df2666f_1
 
 from __future__ import print_function
@@ -14,11 +15,8 @@ import thread
 import socket
 import sys
 import SocketServer
+from gateway_config import *
 
-HOST_NAME = '2001:630:d0:f111:224:e8ff:fe38:6cf2' # Change this!
-PORT_NUMBER = 8081 # Change this!
-
-NEXT_SERVER = 'http://env.ecs.soton.ac.uk/from-gateway/upload.php' # The address of the server after the proxy. Change this too!
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
