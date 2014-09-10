@@ -22,8 +22,14 @@ from gateway_config import *
 
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
+LOG_LEVEL = None
 
 class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
+    def __init__(self):
+      self.logger = logging.getLogger("Gateway Post Handler")
+      self.logger.setLevel(LOG_LEVEL)
+      
+
     def do_HEAD(s):
         s.send_response(204)
         s.end_headers()
@@ -33,6 +39,7 @@ class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
     def do_POST(s):
         # Queue the file on disk
         filename = "queue/" + str(int(time.time() * 1000000)) + "_" + s.client_address[0]
+        s.logger.info("Saving to %s" % filename)
         if not os.path.exists(os.path.dirname(filename)):
             os.makedirs(os.path.dirname(filename))
         data = s.rfile.read(int(s.headers.getheader('content-length')))
@@ -47,24 +54,35 @@ class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 # Function to process the queued data
 def processQueue():
     opener = urllib2.build_opener(urllib2.HTTPHandler)
+    logger = logging.getLogger("Gateway Queue Handler")
+    logger.setLevel(LOG_LEVEL)
+    message_printed = False
     while True:
         try:
-            if len(os.listdir("queue")) > 0:
+            queue_length = len(os.listdir("queue"))
+            if queue_length > 0:
+                logger.info("%d items in queue")
                 filename = "queue/" + os.listdir("queue")[0]
-		from_ip = filename.split("_")[1]
+                logger.info("Sending file %s" % filename)
+                from_ip = filename.split("_")[1]
                 fh = open(filename, 'r')
                 data = fh.read()
                 request = urllib2.Request(NEXT_SERVER + "?ip=" + from_ip, data=data)
                 url = opener.open(request)
                 print("Status = %s" % url.getcode())
                 if int(url.getcode()/100) == 2:
+                    logger.info("Deleting %s" % filename)
                     os.remove(filename)
                 else:
-                    print("Status code from next server was not success", file=sys.stderr)
+                    logger.error("Status code from next server was not success")
+                message_printed = False
             else:
+                if not message_printed:
+                  logger.info("Nothing in the queue")
+                message_printed = True
                 time.sleep(1)
         except Exception, e:
-            print(e, file=sys.stderr)
+            logger.error(str(e))
             time.sleep(1)
 
 class HTTPServerV6(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
@@ -88,10 +106,10 @@ if __name__ == '__main__':
     elif OPTIONS.verbose:
         LOG_LEVEL = logging.DEBUG
     logging.basicConfig(
-      format='%(asctime)s - %(filename)s:%(lineno)s - %(levelname)s - %(message)s')
+      format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     LOGGER = logging.getLogger("Gateway Main")
     LOGGER.setLevel(LOG_LEVEL)
-    LOGGER.debug("Starting new thread")
+    LOGGER.debug("Starting Process thread")
     thread.start_new_thread(processQueue, ())
     httpd = HTTPServerV6((HOST_NAME, PORT_NUMBER), MyHandler)
     LOGGER.info("Listening on - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
