@@ -38,13 +38,12 @@ class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
         s.end_headers()
     def do_POST(s):
         # Queue the file on disk
-        filename = "queue/" + str(int(time.time() * 1000000)) + "_" + s.client_address[0]
+        filename = BASE_DIR + QUEUE_DIR + "/" + str(int(time.time() * 1000000)) + "_" + s.client_address[0]
         s.logger.info("Saving to %s" % filename)
-        if not os.path.exists(os.path.dirname(filename)):
-            os.makedirs(os.path.dirname(filename))
         data = s.rfile.read(int(s.headers.getheader('content-length')))
         fh = open(filename, 'w')
         fh.write(data)
+        fh.close()
         s.send_response(204)
         s.end_headers()
 
@@ -57,22 +56,26 @@ def processQueue():
     logger = logging.getLogger("Gateway Queue Handler")
     logger.setLevel(LOG_LEVEL)
     message_printed = False
+    queue = BASE_DIR + QUEUE_DIR
+    archive = BASE_DIR + ARCHIVE_DIR
     while True:
         try:
-            queue_length = len(os.listdir("queue"))
+            queue_length = len(os.listdir(queue))
             if queue_length > 0:
                 logger.info("%d items in queue")
-                filename = "queue/" + os.listdir("queue")[0]
+                filename = queue + "/" + os.listdir(queue)[0]
                 logger.info("Sending file %s" % filename)
                 from_ip = filename.split("_")[1]
                 fh = open(filename, 'r')
                 data = fh.read()
+                fh.close()
                 request = urllib2.Request(NEXT_SERVER + "?ip=" + from_ip, data=data)
                 url = opener.open(request)
                 print("Status = %s" % url.getcode())
                 if int(url.getcode()/100) == 2:
-                    logger.info("Deleting %s" % filename)
-                    os.remove(filename)
+                    new_filename = archive + "/" + filename.split("/")[-1]
+                    logger.info("Moving  %s to %s" % (filename, new_filename))
+                    os.rename(filename, new_filename )
                 else:
                     logger.error("Status code from next server was not success")
                 message_printed = False
@@ -109,6 +112,19 @@ if __name__ == '__main__':
       format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     LOGGER = logging.getLogger("Gateway Main")
     LOGGER.setLevel(LOG_LEVEL)
+    if not os.path.exists(BASE_DIR + QUEUE_DIR):
+      os.makedirs(BASE_DIR + QUEUE_DIR)
+      LOGGER.info("%s%s created" % (BASE_DIR, QUEUE_DIR))
+    else:
+      LOGGER.info("%s%s exists" % (BASE_DIR, QUEUE_DIR))
+    if not os.path.exists(BASE_DIR + ARCHIVE_DIR):
+      os.makedirs(BASE_DIR + ARCHIVE_DIR)
+      LOGGER.info("%s%s created" % (BASE_DIR, ARCHIVE_DIR))
+    else:
+      LOGGER.info("%s%s exists" % (BASE_DIR, ARCHIVE_DIR))
+    
+
+
     LOGGER.debug("Starting Process thread")
     thread.start_new_thread(processQueue, ())
     httpd = HTTPServerV6((HOST_NAME, PORT_NUMBER), MyHandler)
