@@ -25,9 +25,10 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 LOG_LEVEL = None
 
 class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
-    def __init__(self):
-      self.logger = logging.getLogger("Gateway Post Handler")
-      self.logger.setLevel(LOG_LEVEL)
+    def __init__(s, request, client_address, server):
+      s.logger = logging.getLogger("Gateway Post Handler")
+      s.logger.setLevel(LOG_LEVEL)
+      CGIHTTPServer.CGIHTTPRequestHandler.__init__(s, request, client_address, server)
       
 
     def do_HEAD(s):
