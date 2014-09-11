@@ -72,7 +72,7 @@ def processQueue():
                 fh.close()
                 request = urllib2.Request(NEXT_SERVER + "?ip=" + from_ip, data=data)
                 url = opener.open(request)
-                print("Status = %s" % url.getcode())
+                logger.debug("Return Status Code = %s" % url.getcode())
                 if int(url.getcode()/100) == 2:
                     new_filename = archive + "/" + filename.split("/")[-1]
                     logger.info("Moving  %s to %s" % (filename, new_filename))
