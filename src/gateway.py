@@ -63,7 +63,7 @@ def processQueue():
         try:
             queue_length = len(os.listdir(queue))
             if queue_length > 0:
-                logger.info("%d items in queue")
+                logger.info("%i items in queue" % queue_length)
                 filename = queue + "/" + os.listdir(queue)[0]
                 logger.info("Sending file %s" % filename)
                 from_ip = filename.split("_")[1]
