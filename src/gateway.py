@@ -85,10 +85,10 @@ def processQueue():
                 if not message_printed:
                   logger.info("Nothing in the queue")
                 message_printed = True
-                time.sleep(1)
+                time.sleep(SLEEP_TIME)
         except Exception, e:
             logger.error(str(e))
-            time.sleep(1)
+            time.sleep(SLEEP_TIME)
 
 class HTTPServerV6(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
     address_family = socket.AF_INET6
