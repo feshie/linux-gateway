@@ -16,6 +16,7 @@ import socket
 import sys
 import SocketServer
 import logging
+from logging.handlers import WatchedFileHandler
 from optparse import OptionParser, OptionGroup
 
 from gateway_config import *
@@ -104,6 +105,8 @@ if __name__ == '__main__':
           dest="verbose", default=False,
           help="Print all information available")
     PARSER.add_option_group(GROUP)
+    PARSER.add_option("-f", "--file", dest="filename",
+          help="Redirect all output to file")
     (OPTIONS, ARGS) = PARSER.parse_args()
     if OPTIONS.quiet:
         LOG_LEVEL = logging.CRITICAL
@@ -113,6 +116,11 @@ if __name__ == '__main__':
       format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     LOGGER = logging.getLogger("Gateway Main")
     LOGGER.setLevel(LOG_LEVEL)
+    if OPTIONS.filename is not None:
+        LF = WatchedFileHandler(OPTIONS.filename)
+        LOGGER.addHandler(LF)
+    
+
     if not os.path.exists(BASE_DIR + QUEUE_DIR):
       os.makedirs(BASE_DIR + QUEUE_DIR)
       LOGGER.info("%s%s created" % (BASE_DIR, QUEUE_DIR))
