@@ -13,5 +13,5 @@ make z1-reset  >> /dev/null 2>&1
 screen -d -m -S router make connect-router PREFIX=${PREFIX}
 sleep 10
 cd ${RECIEVER_PATH}
-./gateway.py -vf RECIEVER_LOG_FILE  >> /dev/null 2>&1 &
+./gateway.py -vf ${RECIEVER_LOG_FILE}  >> /dev/null 2>&1 &
 
