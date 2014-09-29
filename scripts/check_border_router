@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ps aux | grep -v grep | grep "make connect-router" >/dev/null 2>&1
+	if [ $? -eq 0 ]
+then
+	echo "Connect Router is running"
+	exit 0
+else
+	echo "Connect Router is not running"
+	exit 2
+fi
