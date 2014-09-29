@@ -1,0 +1,3 @@
+#!/bin/bash
+autossh  -f -M 0 mountainsensing.m0uvr.org.uk -R 9022:localhost:22 -Nn
+#-oServerAliveInterval 60 # -oServerAliveCount 3
