@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ps aux | grep -v grep | grep "python ./gateway.py" >/dev/null 2>&1
+	if [ $? -eq 0 ]
+then
+	echo "Linux gateway is running"
+	exit 0
+else
+	echo "Linux gateway is not running"
+	exit 2
+fi
