@@ -118,6 +118,9 @@ if __name__ == '__main__':
     LOGGER.setLevel(LOG_LEVEL)
     if OPTIONS.filename is not None:
         LF = WatchedFileHandler(OPTIONS.filename)
+        FORMAT = logging.Formatter(
+		'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        LF.setFormatter(FORMAT)
         LOGGER.addHandler(LF)
     
 
