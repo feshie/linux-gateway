@@ -1,0 +1,6 @@
+#!/bin/bash
+
+service aiccu restart
+/home/mountainsensing/linux-gateway/scripts/ssh-m0uvr
+/home/mountainsensing/linux-gateway/scripts/ssh-gateway
+/home/mountainsensing/linux-gateway/scripts/ssh-surtsey
