@@ -1,16 +1,13 @@
 #!/bin/bash
 
-CONTIKI_PATH=/home/mountainsensing/contiki
-ROUTER_PATH=/mountainsensing/rpl-border-router
-PREFIX="2a01:348:24b:2::1/56"
+SCRIPT_PATH=/home/mountainsensing/linux-gateway/scripts
 
 RECIEVER_PATH=/home/mountainsensing/linux-gateway/src
 
 RECIEVER_LOG_FILE=/ms/python/data/reciever-log
 
-cd ${CONTIKI_PATH}/${ROUTER_PATH}
-make z1-reset  >> /dev/null 2>&1
-screen -d -m -S router make connect-router PREFIX=${PREFIX}
+cd $SCRIPT_PATH
+screen -d -m -S router ./router-maintainer
 sleep 20
 cd ${RECIEVER_PATH}
 screen -d -m -S gateway ./gateway.py -vf ${RECIEVER_LOG_FILE}  

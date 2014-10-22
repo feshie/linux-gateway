@@ -1,0 +1,7 @@
+#!/bin/bash
+cd /home/mountainsensing/linux-gateway/scripts
+until ./border-router 
+do
+	date >> /ms/restarts
+	sleep 5
+done
