@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ps aux | grep -v grep | grep "make connect-router" >/dev/null 2>&1
+ps aux | grep -v grep | grep "make z1-reset connect-router" >/dev/null 2>&1
 	if [ $? -eq 0 ]
 then
 	echo "Connect Router is running"
