@@ -41,7 +41,7 @@ class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
     def do_POST(s):
         # Queue the file on disk
         filename = BASE_DIR + QUEUE_DIR + "/" + str(int(time.time() * 1000000)) + "_" + s.client_address[0]
-        s.logger.info("Saving to %s" % filename)
+        s.logger.debug("Saving to %s" % filename)
         data = s.rfile.read(int(s.headers.getheader('content-length')))
         fh = open(filename, 'w')
         fh.write(data)
@@ -66,17 +66,17 @@ def processQueue():
             if queue_length > 0:
                 logger.info("%i items in queue" % queue_length)
                 filename = queue + "/" + os.listdir(queue)[0]
-                logger.info("Sending file %s" % filename)
+                logger.debug("Sending file %s" % filename)
                 from_ip = filename.split("_")[1]
                 fh = open(filename, 'r')
                 data = fh.read()
                 fh.close()
                 request = urllib2.Request(NEXT_SERVER + "?ip=" + from_ip, data=data)
                 url = opener.open(request)
-                logger.debug("Return Status Code = %s" % url.getcode())
+                logger.info("Return Status Code = %s" % url.getcode())
                 if int(url.getcode()/100) == 2:
                     new_filename = archive + "/" + filename.split("/")[-1]
-                    logger.info("Moving  %s to %s" % (filename, new_filename))
+                    logger.debug("Moving  %s to %s" % (filename, new_filename))
                     os.rename(filename, new_filename )
                 else:
                     logger.error("Status code from next server was not success")
@@ -128,12 +128,12 @@ if __name__ == '__main__':
       os.makedirs(BASE_DIR + QUEUE_DIR)
       LOGGER.info("%s%s created" % (BASE_DIR, QUEUE_DIR))
     else:
-      LOGGER.info("%s%s exists" % (BASE_DIR, QUEUE_DIR))
+      LOGGER.debug("%s%s exists" % (BASE_DIR, QUEUE_DIR))
     if not os.path.exists(BASE_DIR + ARCHIVE_DIR):
       os.makedirs(BASE_DIR + ARCHIVE_DIR)
       LOGGER.info("%s%s created" % (BASE_DIR, ARCHIVE_DIR))
     else:
-      LOGGER.info("%s%s exists" % (BASE_DIR, ARCHIVE_DIR))
+      LOGGER.debug("%s%s exists" % (BASE_DIR, ARCHIVE_DIR))
     
 
 
