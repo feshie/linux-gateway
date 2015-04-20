@@ -1,6 +1,6 @@
 #!/bin/bash
-
-CONTIKI_PATH=/home/mountainsensing/contiki
+PATH=$PATH:/opt/mspgccx/bin
+CONTIKI_PATH=/home/pjb/contiki
 ROUTER_PATH=/mountainsensing/rpl-border-router
 PREFIX="2a01:348:24b:2::1/56"
 
@@ -9,5 +9,5 @@ RECIEVER_PATH=/home/mountainsensing/linux-gateway/src
 RECIEVER_LOG_FILE=/ms/python/data/reciever-log
 
 cd ${CONTIKI_PATH}/${ROUTER_PATH}
-make z1-reset connect-router PREFIX=${PREFIX}
+make z1-reset connect-router PREFIX=${PREFIX} TARGET=z1-feshie
 
