@@ -1,7 +1,59 @@
-#!/bin/bash
-cd /home/mountainsensing/linux-gateway/scripts
-until ./border-router 
-do
-	date >> /ms/restarts
-	sleep 5
-done
+#!/usr/bin/env python
+#cd /home/mountainsensing/linux-gateway/scripts
+#until ./border-router 
+#do
+#   date >> /ms/restarts
+#   sleep 5
+#done
+
+import logging
+from subprocess import Popen
+from time import sleep
+
+Z1_RESET = "./z1-reset"
+CONNECT = "./border-router"
+CWD = "."
+WAIT_PERIOD = 10
+
+class RouterMaintainer(object):
+
+    def __init__(self, output_file, error_file):
+        logging.basicConfig(
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        self.logger = logging.getLogger("Router Maintainer")
+        self.output_file = output_file
+        self.error_file = error_file
+        self.logger.info("Using %s for output", output_file)
+        self.logger.info("Using %s for error", error_file)
+
+    def run(self):
+        try:
+            output = open(self.output_file, "a")
+            error = open(self.error_file, "a")
+            while(True):
+                reset_proc = Popen(args="%s" % Z1_RESET, 
+                    stdout=output,
+                    stderr=error,
+                    cwd=CWD,
+                    shell=True)
+                exit_status = reset_proc.wait()
+                self.logger.debug("Reset exited with status %d", exit_status)
+                router_proc = Popen(
+                    args="%s" % CONNECT, 
+                    shell=True,
+                    stdout=output,
+                    stderr=error,
+                    )
+                exit_status = router_proc.wait()
+                self.logger.error("Exit Status = %s", exit_status)
+                sleep(WAIT_PERIOD)
+        except KeyboardInterrupt:
+            self.logger.debug("Keyboard Interrupt detected")
+            error.close()
+            output.close()
+
+
+if __name__ == "__main__":
+    ROUTER = RouterMaintainer("/tmp/out", "/tmp/err")
+    ROUTER.run()
+
