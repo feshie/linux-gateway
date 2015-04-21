@@ -1,0 +1,18 @@
+Host ssh.soton.ac.uk
+    user glacsweb
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+Host mountainsensing.m0uvr.org.uk
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+Host surtsey.ecs.soton.ac.uk
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+Host login.ecs.soton.ac.uk
+    port 443
+    user glacsweb
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
