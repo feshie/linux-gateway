@@ -1,6 +1,6 @@
 #!/bin/bash
 PATH=$PATH:/opt/mspgccx/bin
-CONTIKI_PATH=/home/pjb/contiki
+CONTIKI_PATH=/home/mountainsensing/contiki
 ROUTER_PATH=/mountainsensing/rpl-border-router
 PREFIX="2a01:348:24b:2::1/56"
 

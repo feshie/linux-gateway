@@ -21,6 +21,7 @@ class RouterMaintainer(object):
         logging.basicConfig(
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         self.logger = logging.getLogger("Router Maintainer")
+        self.logger.setLevel(10)
         self.output_file = output_file
         self.error_file = error_file
         self.logger.info("Using %s for output", output_file)
@@ -54,6 +55,6 @@ class RouterMaintainer(object):
 
 
 if __name__ == "__main__":
-    ROUTER = RouterMaintainer("/tmp/out", "/tmp/err")
+    ROUTER = RouterMaintainer("/ms/py-router-out", "/ms/py-router-err")
     ROUTER.run()
 
