@@ -9,11 +9,16 @@
 import logging
 from subprocess import Popen
 from time import sleep
+from datetime import datetime
 
 Z1_RESET = "./z1-reset"
 CONNECT = "./border-router"
 CWD = "."
 WAIT_PERIOD = 10
+
+#Times at which to perform a reset (UTC)
+RESET_HOURS = [13]
+RESET_MINUTES=[0,50]
 
 class RouterMaintainer(object):
 
@@ -45,7 +50,19 @@ class RouterMaintainer(object):
                     stdout=output,
                     stderr=error,
                     )
-                exit_status = router_proc.wait()
+                while(router_proc.poll( is None)):
+                    # process is running
+                    now = datetime.utcnow()
+                    if(now.hour in RESET_HOURS
+                            and now.minute in RESET_MINUTES):
+                        self.logger.info("Performing a scheduled reset of router")
+                        router_proc.kill()
+                        router_proc.wait()
+                        break
+                    else:
+                        sleep(60)
+
+                exit_status = router_proc.returncode
                 self.logger.error("Exit Status = %s", exit_status)
                 sleep(WAIT_PERIOD)
         except KeyboardInterrupt:
