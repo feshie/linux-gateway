@@ -50,7 +50,8 @@ class RouterMaintainer(object):
                     stdout=output,
                     stderr=error,
                     )
-                while(router_proc.poll( is None)):
+                self.logger.debug("Started router")
+                while(router_proc.poll() is None):
                     # process is running
                     now = datetime.utcnow()
                     if(now.hour in RESET_HOURS
