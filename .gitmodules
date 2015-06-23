@@ -1,0 +1,3 @@
+[submodule "fetcher/protocol-buffers"]
+	path = fetcher/protocol-buffers
+	url = https://github.com/feshie/protocol-buffers.git
