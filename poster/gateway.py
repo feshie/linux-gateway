@@ -5,16 +5,11 @@ from __future__ import print_function
 
 import signal
 import time
-import BaseHTTPServer
-import CGIHTTPServer
 import Queue
 import io
 import os
 import urllib2
-import thread
-import socket
 import sys
-import SocketServer
 import logging
 from logging.handlers import WatchedFileHandler
 from optparse import OptionParser, OptionGroup
@@ -24,33 +19,6 @@ from gateway_config import *
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 LOG_LEVEL = None
-
-class MyHandler(CGIHTTPServer.CGIHTTPRequestHandler):
-    def __init__(s, request, client_address, server):
-      s.logger = logging.getLogger("Gateway Post Handler")
-      s.logger.setLevel(LOG_LEVEL)
-      CGIHTTPServer.CGIHTTPRequestHandler.__init__(s, request, client_address, server)
-      
-
-    def do_HEAD(s):
-        s.send_response(204)
-        s.end_headers()
-    def do_GET(s):
-        s.send_response(204)
-        s.end_headers()
-    def do_POST(s):
-        # Queue the file on disk
-        filename = BASE_DIR + QUEUE_DIR + "/" + str(int(time.time() * 1000000)) + "_" + s.client_address[0]
-        s.logger.debug("Saving to %s" % filename)
-        data = s.rfile.read(int(s.headers.getheader('content-length')))
-        fh = open(filename, 'w')
-        fh.write(data)
-        fh.close()
-        s.send_response(204)
-        s.end_headers()
-
-    def do_PUT(s):
-	do_POST(s)
 
 # Function to process the queued data
 def processQueue():
@@ -90,9 +58,6 @@ def processQueue():
             logger.error(str(e))
             time.sleep(SLEEP_TIME)
 
-class HTTPServerV6(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
-    address_family = socket.AF_INET6
-
 if __name__ == '__main__':
     LOG_LEVEL = DEFAULT_LOG_LEVEL
     PARSER = OptionParser()
@@ -122,7 +87,6 @@ if __name__ == '__main__':
 		'%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         LF.setFormatter(FORMAT)
         LOGGER.addHandler(LF)
-    
 
     if not os.path.exists(BASE_DIR + QUEUE_DIR):
       os.makedirs(BASE_DIR + QUEUE_DIR)
@@ -134,17 +98,7 @@ if __name__ == '__main__':
       LOGGER.info("%s%s created" % (BASE_DIR, ARCHIVE_DIR))
     else:
       LOGGER.debug("%s%s exists" % (BASE_DIR, ARCHIVE_DIR))
-    
 
-
-    LOGGER.debug("Starting Process thread")
-    thread.start_new_thread(processQueue, ())
-    httpd = HTTPServerV6((HOST_NAME, PORT_NUMBER), MyHandler)
-    LOGGER.info("Listening on - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
-    LOGGER.info("Next Server: %s" % NEXT_SERVER)
-    try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    httpd.server_close()
+    LOGGER.debug("Starting Process queue")
+    processQueue();
     LOGGER.info("Server Stops - [%s]:%s" % (HOST_NAME, PORT_NUMBER))
