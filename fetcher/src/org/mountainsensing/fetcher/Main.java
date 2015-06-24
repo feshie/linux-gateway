@@ -1,6 +1,8 @@
 package org.mountainsensing.fetcher;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
@@ -39,14 +41,16 @@ public class Main {
                 Sample sample = null;
                 
                 try {
-                    sample = Sample.parseFrom(response.getPayload());
-                } catch (InvalidProtocolBufferException ex) {
-                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                    sample = Sample.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
+                } catch (IOException ex) {
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to decode Sample", ex);
+                    System.exit(-1);
                 }
                 
 				System.out.println();
 
                 System.out.println(sample);
+
 				
 			} else {
 				System.out.println("No response received.");
