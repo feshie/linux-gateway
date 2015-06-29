@@ -3,6 +3,8 @@ package org.mountainsensing.fetcher.operations;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import org.eclipse.californium.core.CoapClient;
@@ -44,9 +46,21 @@ public abstract class SampleOperation extends Operation {
     @Parameters(commandDescription = "Get sample(s) from the node(s), decode them, delete them from the node(s), and output them in a directory")
     public static class Fetch extends SampleOperation {
 
+        @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples")
+        private String dir = "/ms/queue/";
+
         @Override
         public void processNode(URI uri, int timeout) throws IOException {
             Sample sample = getSample(uri);
+            
+            // Substring strips the aquare backets from around the IPv6 address
+            File file = new File(dir + System.currentTimeMillis() + "_" + uri.getHost().substring(1, uri.getHost().length() - 1));
+            try (FileOutputStream fileStream = new FileOutputStream(file)) {
+                sample.writeDelimitedTo(fileStream);
+                fileStream.flush();
+                System.out.println("Sample saved to file: " + file.toString());
+            }
+            
             deleteSample(uri, sample.getId());
         }
     }
