@@ -21,13 +21,19 @@ public abstract class SampleOperation extends Operation {
     
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
     
+    /**
+     * Canary value for the latest sample.
+     */
     private static final int LATEST_SAMPLE = 0;
 
+    /**
+     * Canary value indicating no further samples should be processed.
+     */
     private static final int NO_MORE_SAMPLES = -1;
 
     private static final String RESSOURCE = "sample";
     
-    @Parameter(names = {"-s", "--sample-id"}, description = "Sample id. 0 for latest sample.")
+    @Parameter(names = {"-s", "--sample-id"}, description = "Sample id. " + LATEST_SAMPLE + " for latest sample.")
     private int sampleId = LATEST_SAMPLE;
 
     @Parameter(names = {"-a", "--all"}, description = "Process all samples from the node(s). This overrides any sample-id set.")
@@ -39,7 +45,7 @@ public abstract class SampleOperation extends Operation {
         @Override
         public int processSample(URI uri, int timeout) throws IOException {
             Sample sample = getSample(uri);
-            System.out.println(sample);
+            log.log(Level.INFO, "Got sample: \n{0}", sample);
 
             // Subtract 1 from the id to try and find a previous sample
             return sample.getId() - 1;
@@ -52,6 +58,8 @@ public abstract class SampleOperation extends Operation {
         @Override
         public int processSample(URI uri, int timeout) throws IOException {
             deleteSample(uri);
+            log.log(Level.INFO, "Deleted sample: {0}", uri);
+            
             // We don't support deleting ranges / all samples
             return NO_MORE_SAMPLES;
         }
