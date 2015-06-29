@@ -19,18 +19,26 @@ public abstract class SampleOperation extends Operation {
 
     private static final int LATEST_SAMPLE = 0;
 
+    private static final int NO_MORE_SAMPLES = -1;
+
     private static final String RESSOURCE = "sample";
     
-    @Parameter(names = {"-s", "--sample-id"}, description = "Sample id. 0 for latest.")
-    private int id = LATEST_SAMPLE;
+    @Parameter(names = {"-s", "--sample-id"}, description = "Sample id. 0 for latest sample.")
+    private int sampleId = LATEST_SAMPLE;
+
+    @Parameter(names = {"-a", "--all"}, description = "Process all samples from the node(s). This overrides any sample-id set.")
+    private boolean shouldProcessAll = false;
         
     @Parameters(commandDescription = "Get samples from the node(s)")
     public static class Get extends SampleOperation {
         
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
+        public int processSample(URI uri, int timeout) throws IOException {
             Sample sample = getSample(uri);
             System.out.println(sample);
+
+            // Subtract 1 from the id to try and find a previous sample
+            return sample.getId() - 1;
         }
     }
 
@@ -38,8 +46,10 @@ public abstract class SampleOperation extends Operation {
     public static class Delete extends SampleOperation {
 
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
-            deleteSample(uri); 
+        public int processSample(URI uri, int timeout) throws IOException {
+            deleteSample(uri);
+            // We don't support deleting ranges / all samples
+            return NO_MORE_SAMPLES;
         }
     }
 
@@ -50,7 +60,7 @@ public abstract class SampleOperation extends Operation {
         private String dir = "/ms/queue/";
 
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
+        public int processSample(URI uri, int timeout) throws IOException {
             Sample sample = getSample(uri);
             
             // Substring strips the aquare backets from around the IPv6 address
@@ -61,16 +71,14 @@ public abstract class SampleOperation extends Operation {
                 System.out.println("Sample saved to file: " + file.toString());
             }
             
-            deleteSample(uri, sample.getId());
+            deleteSample(getURI(uri, sample.getId()));
+            // Always just get the latest sample, seeing as we've deleted the previous one.
+            return LATEST_SAMPLE;
         }
     }
       
     public Sample getSample(URI uri) throws IOException {
-        return getSample(uri, id); 
-    }
-    
-    public Sample getSample(URI uri, int sampleId) throws IOException {
-        CoapClient client = new CoapClient(getURI(uri, sampleId));
+        CoapClient client = new CoapClient(uri);
         //client.setTimeout(timeout);
         System.out.println("Attempting to get sample from: " + client.getURI());
         
@@ -83,11 +91,7 @@ public abstract class SampleOperation extends Operation {
     }
     
     public void deleteSample(URI uri) throws IOException {
-        deleteSample(uri, id);
-    }
-    
-    public void deleteSample(URI uri, int sampleId) throws IOException {
-        CoapClient client = new CoapClient(getURI(uri, sampleId));
+        CoapClient client = new CoapClient(uri);
         
         System.out.println("Attempting to delete sample from: " + client.getURI());
 
@@ -98,9 +102,38 @@ public abstract class SampleOperation extends Operation {
 
         throw new IOException();
     }
+
+    @Override
+    public void processNode(URI uri, int timeout) throws IOException {
+        // If request, process all samples
+        if (shouldProcessAll) {
+            int nextSample = LATEST_SAMPLE;
+
+            while (nextSample != NO_MORE_SAMPLES) {
+                nextSample = processSample(getURI(uri, nextSample), timeout);
+            }
+        
+        // Otherwise just process the requested sample.
+        } else {
+            processSample(getURI(uri, sampleId), timeout);
+        }
+    }
     
-    private String getURI(URI base, int sampleId) {
-        return base.toString() + (sampleId == LATEST_SAMPLE ? "" : Integer.toString(sampleId));
+    /**
+     * Process a given sample. Returns true if in the case of multiple samples the ID should be decremented.
+     * @param uri
+     * @param timeout
+     * @return
+     * @throws IOException 
+     */
+    public abstract int processSample(URI uri, int timeout) throws IOException;
+    
+    protected int getNextSample(int currentSample) {
+        return currentSample - 1;
+    }
+    
+    protected URI getURI(URI base, int sampleId) {
+        return base.resolve(sampleId == LATEST_SAMPLE ? "" : Integer.toString(sampleId));
     }
     
     @Override
