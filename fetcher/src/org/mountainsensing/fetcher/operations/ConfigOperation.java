@@ -91,9 +91,7 @@ public abstract class ConfigOperation extends Operation {
             
 			CoapResponse response = client.post(out.toByteArray(), MediaTypeRegistry.APPLICATION_OCTET_STREAM);
 			if (response != null && response.isSuccess()) {
-                log.log(Level.FINER, "Config succesfully posted to {0}", client.getURI());
-                System.out.println("Config set to: ");
-                System.out.println(config);
+                log.log(Level.INFO, "Config set to \n{0}", config);
                 return;
             }
             
