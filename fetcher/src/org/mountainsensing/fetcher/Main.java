@@ -1,65 +1,117 @@
 package org.mountainsensing.fetcher;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import java.io.ByteArrayInputStream;
+import com.beust.jcommander.JCommander;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.eclipse.californium.core.CoapClient;
-import org.eclipse.californium.core.CoapResponse;
-import org.mountainsensing.pb.Readings.Sample;
+import org.mountainsensing.fetcher.operations.*;
 
 /**
  *
- * @author af1g12
  */
 public class Main {
     
+    private static final Map<String, Operation> operations = new HashMap<>();
+    static {
+        operations.put("get-sample", new GetSample());
+        operations.put("del-sample", new DeleteSample());
+        operations.put("fetch-samples", new FetchSamples());
+                
+        operations.put("get-config", new GetConfig());
+        operations.put("set-config", new SetConfig());
+        
+        operations.put("get-date", new GetDate());
+        operations.put("set-date", new SetDate());
+    }
+    
+    private static final String PROTOCOL = "coap://";
+
+    private static Options options;
+
     public static void main(String[] args) {
         Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
         californiumLogger.setLevel(Level.WARNING);
-        URI uri = null; // URI parameter of the request
-		
-		if (args.length > 0) {
-		    System.out.println("Attempting to get sample from node " + args[0]);
-            
-			// input URI from command line arguments
-			try {
-				uri = new URI("coap://[aaaa::c30c:0:0:" + args[0] + "]/sample");
-			} catch (URISyntaxException e) {
-				System.err.println("Invalid URI: " + e.getMessage());
-				System.exit(-1);
-			}
-			
-			CoapClient client = new CoapClient(uri);
-			CoapResponse response = client.get();
-			
-			if (response != null) {
-                Sample sample = null;
-                
+        
+        options = new Options();
+        
+	    JCommander parser = new JCommander(options);
+        
+        for (String opName : operations.keySet()) {
+            parser.addCommand(opName, operations.get(opName));
+        }
+         
+        parser.parse(args);
+
+        if (options.shouldShowHelp()) {
+            parser.usage();
+            return;
+        }
+        
+        Operation operation = operations.get(parser.getParsedCommand());
+        for (String node : operation.getNodes()) {
+            URI uri ;
+            try {
+                uri = new URI(PROTOCOL + "[" + options.getPrefix() + node + "]" + "/" + operation.getRessource() + "/");
+            } catch (URISyntaxException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                continue;
+            }
+
+            for (int i = 0; i < options.getRetries(); i++) {
                 try {
-                    sample = Sample.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
+                    if (operation.processNode(uri, options.getTimeout())) {
+                        break;
+                    }
                 } catch (IOException ex) {
-                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to decode Sample", ex);
-                    System.exit(-1);
+                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
+            }
+        }
+    }
+        
+		/*if (args.length > 0) {
+		    System.out.println("Attempting to get samples from node " + args[0]);
+
+            //SensorConfig config = SensorConfig.newBuilder().setInterval(154).setHasADC1(false).setHasADC2(false).setHasRain(false).build();
+            
+			CoapClient client = new CoapClient();
+            //ByteArrayOutputStream out = new ByteArrayOutputStream();
+            //config.writeDelimitedTo(out);
+            
+			//CoapResponse response = client.post(out.toByteArray(), MediaTypeRegistry.APPLICATION_OCTET_STREAM);
+
+			//if (response != null && response.isSuccess()) {
+            //    System.out.println("Posted config!");
+            //}
+            
+            CoapResponse response;
+            
+            while (true) {
+                client.setURI(PREFIX + args[0] + SUFFIX);
                 
-				System.out.println();
+                response = client.get();
+                
+			    if (response != null && response.isSuccess()) {
+                    Sample sample = Sample.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
+                    //config = SensorConfig.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
+                    
+				    System.out.println();
 
-                System.out.println(sample);
+                    //System.out.println(config);
+                
+                    System.out.println(sample);
 
-				
-			} else {
-				System.out.println("No response received.");
-			}
-			
-		} else {
-			// display help
-			System.out.println("Usage: " + Main.class.getSimpleName() + " URI");
-			System.out.println("  URI: The CoAP URI of the remote resource to GET");
-		}
-	}
+                    client.setURI(PREFIX + args[0] + SUFFIX + "/" + Integer.toString(sample.getId()));
+                    response = client.delete();
+
+                    if (response.isSuccess()) {
+                        System.out.println("Succesfully deleted Sample " + Integer.toString(sample.getId()));
+                    }
+                }
+            }
+		}*/
 }
