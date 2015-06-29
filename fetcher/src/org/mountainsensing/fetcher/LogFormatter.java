@@ -10,14 +10,14 @@ import java.util.logging.LogRecord;
  */
 public class LogFormatter extends Formatter {
     
-	private static final MessageFormat messageFormat = new MessageFormat("{0,date,hh:mm:ss} [{1}]: {2}\n");
+	private static final MessageFormat messageFormat = new MessageFormat("{0,date,HH:mm:ss} [{1}]: {2}\n");
 	
 	@Override
     public String format(LogRecord record) {
 		Object[] arguments = new Object[3];
 		arguments[0] = new Date(record.getMillis());
 		arguments[1] = record.getLevel();
-		arguments[2] = record.getMessage();//new MessageFormat(record.getMessage()).format(record.getParameters());
+		arguments[2] = new MessageFormat(record.getMessage()).format(record.getParameters());
 		return messageFormat.format(arguments);
 	}	
 }
