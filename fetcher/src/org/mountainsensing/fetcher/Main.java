@@ -17,15 +17,15 @@ public class Main {
     
     private static final Map<String, Operation> operations = new HashMap<>();
     static {
-        operations.put("get-sample", new GetSample());
-        operations.put("del-sample", new DeleteSample());
-        operations.put("fetch-samples", new FetchSamples());
+        operations.put("get-sample", new SampleOperation.Get());
+        operations.put("del-sample", new SampleOperation.Delete());
+        operations.put("fetch-samples", new SampleOperation.Fetch());
                 
-        operations.put("get-config", new GetConfig());
-        operations.put("set-config", new SetConfig());
+        operations.put("get-config", new ConfigOperation.Get());
+        operations.put("set-config", new ConfigOperation.Set());
         
-        operations.put("get-date", new GetDate());
-        operations.put("set-date", new SetDate());
+        operations.put("get-date", new DateOperation.Get());
+        operations.put("set-date", new DateOperation.Set());
     }
     
     private static final String PROTOCOL = "coap://";
@@ -63,9 +63,8 @@ public class Main {
 
             for (int i = 0; i < options.getRetries(); i++) {
                 try {
-                    if (operation.processNode(uri, options.getTimeout())) {
-                        break;
-                    }
+                    operation.processNode(uri, options.getTimeout());
+                    break;
                 } catch (IOException ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }

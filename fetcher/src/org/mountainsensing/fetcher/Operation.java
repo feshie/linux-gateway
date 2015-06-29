@@ -30,7 +30,7 @@ public abstract class Operation {
      * @return 
      * @throws java.io.IOException 
      */
-    public abstract boolean processNode(URI uri, int timeout) throws IOException;
+    public abstract void processNode(URI uri, int timeout) throws IOException;
 
     protected List<String> getNodes() {
         return nodes;   
