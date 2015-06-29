@@ -19,7 +19,7 @@ public class Main {
     static {
         operations.put("get-sample", new SampleOperation.Get());
         operations.put("del-sample", new SampleOperation.Delete());
-        operations.put("fetch-samples", new SampleOperation.Fetch());
+        operations.put("fetch-sample", new SampleOperation.Fetch());
                 
         operations.put("get-config", new ConfigOperation.Get());
         operations.put("set-config", new ConfigOperation.Set());

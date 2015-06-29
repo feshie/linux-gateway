@@ -46,65 +46,49 @@ public abstract class SampleOperation extends Operation {
 
         @Override
         public void processNode(URI uri, int timeout) throws IOException {
-            getSample(uri);
-            deleteSample(uri);
+            Sample sample = getSample(uri);
+            deleteSample(uri, sample.getId());
         }
     }
-    
+      
     public Sample getSample(URI uri) throws IOException {
-        CoapClient client = new CoapClient(uri);
+        return getSample(uri, id); 
+    }
+    
+    public Sample getSample(URI uri, int sampleId) throws IOException {
+        CoapClient client = new CoapClient(getURI(uri, sampleId));
         //client.setTimeout(timeout);
-        System.out.println("Attempting to get sample from: " + uri.toString());
+        System.out.println("Attempting to get sample from: " + client.getURI());
         
         CoapResponse response = client.get();
         if (response != null && response.isSuccess()) {
             return Sample.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
         }
 
+        throw new IOException(); 
+    }
+    
+    public void deleteSample(URI uri) throws IOException {
+        deleteSample(uri, id);
+    }
+    
+    public void deleteSample(URI uri, int sampleId) throws IOException {
+        CoapClient client = new CoapClient(getURI(uri, sampleId));
+        
+        System.out.println("Attempting to delete sample from: " + client.getURI());
+
+        CoapResponse response = client.delete();
+        if (response != null && response.isSuccess()) {
+            return; 
+        }
+
         throw new IOException();
     }
-
-    public void deleteSample(URI uri) throws IOException {
-       /*
-             System.out.println("Attempting to delete samples " + args[0]);
-
-             CoapClient client = new CoapClient();
-             //ByteArrayOutputStream out = new ByteArrayOutputStream();
-             //config.writeDelimitedTo(out);
-            
-             //CoapResponse response = client.post(out.toByteArray(), MediaTypeRegistry.APPLICATION_OCTET_STREAM);
-
-             //if (response != null && response.isSuccess()) {
-             //    System.out.println("Posted config!");
-             //}
-            
-             CoapResponse response;
-            
-             while (true) {
-             client.setURI(PREFIX + args[0] + SUFFIX);
-                
-             response = client.get();
-                
-             if (response != null && response.isSuccess()) {
-             Sample sample = Sample.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
-             //config = SensorConfig.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
-                    
-             System.out.println();
-
-             //System.out.println(config);
-                
-             System.out.println(sample);
-
-             client.setURI(PREFIX + args[0] + SUFFIX + "/" + Integer.toString(sample.getId()));
-             response = client.delete();
-
-             if (response.isSuccess()) {
-             System.out.println("Succesfully deleted Sample " + Integer.toString(sample.getId()));
-             }
-             }
-             }*/ 
+    
+    private String getURI(URI base, int sampleId) {
+        return base.toString() + (sampleId == LATEST_SAMPLE ? "" : Integer.toString(sampleId));
     }
-
+    
     @Override
     public String getRessource() {
         return RESSOURCE;
