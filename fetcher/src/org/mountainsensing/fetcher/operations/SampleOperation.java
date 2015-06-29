@@ -66,7 +66,7 @@ public abstract class SampleOperation extends Operation {
     }
 
     @Parameters(commandDescription = "Get sample(s) from the node(s), decode them, delete them from the node(s), and output them in a directory")
-    public static class Fetch extends SampleOperation {
+    public static class Grab extends SampleOperation {
 
         @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples")
         private String dir = "/ms/queue/";
