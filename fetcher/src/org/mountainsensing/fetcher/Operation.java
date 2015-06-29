@@ -14,7 +14,7 @@ public abstract class Operation {
     /**
      * 
      */
-    @Parameter(description = "node(s)", hidden = true)
+    @Parameter(description = "node(s)", required = true, hidden = true)
     private List<String> nodes = new ArrayList<String>(); 
     
     /**
