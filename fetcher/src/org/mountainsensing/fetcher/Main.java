@@ -1,6 +1,7 @@
 package org.mountainsensing.fetcher;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.ParameterException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -15,6 +16,9 @@ import org.mountainsensing.fetcher.operations.*;
  */
 public class Main {
     
+    /**
+     * Map of all the command names to their associated operation.
+     */
     private static final Map<String, Operation> operations = new HashMap<>();
     static {
         operations.put("get-sample", new SampleOperation.Get());
@@ -28,30 +32,35 @@ public class Main {
         operations.put("set-date", new DateOperation.Set());
     }
     
+    /**
+     * Protocol to use for communication with nodes.
+     */
     private static final String PROTOCOL = "coap://";
 
-    private static Options options;
+    /**
+     * Exit code indicating success.
+     */
+    private static final int EXIT_SUCCESS = 0;
+
+    /**
+     * Exit code indicating a failure / error.
+     */
+    private static final int EXIT_FAILURE = 1;
 
     public static void main(String[] args) {
         Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
         californiumLogger.setLevel(Level.WARNING);
         
-        options = new Options();
+        Options options = new Options();
+        Operation operation = null;
         
-	    JCommander parser = new JCommander(options);
-        
-        for (String opName : operations.keySet()) {
-            parser.addCommand(opName, operations.get(opName));
-        }
-         
-        parser.parse(args);
-
-        if (options.shouldShowHelp()) {
-            parser.usage();
-            return;
+        try {
+            operation = operations.get(parseArgs(args, options));
+        } catch (ParameterException e) {
+            System.err.println(e.getMessage() + ". See --help.");
+            System.exit(EXIT_FAILURE);
         }
         
-        Operation operation = operations.get(parser.getParsedCommand());
         for (String node : operation.getNodes()) {
             URI uri ;
             try {
@@ -71,46 +80,32 @@ public class Main {
             }
         }
     }
+    
+    /**
+     * Parse an array of arguments into an options object.
+     * @param args The arguments to parse.
+     * @param options The parameters to use for parsing.
+     * @return The name of the command.
+     * @throws ParameterException If there was an error parsing, such as a missing required parameter or command.
+     */
+    private static String parseArgs(String[] args, Options options) throws ParameterException {
+        JCommander parser = new JCommander(options);
         
-		/*if (args.length > 0) {
-		    System.out.println("Attempting to get samples from node " + args[0]);
+        for (String opName : operations.keySet()) {
+            parser.addCommand(opName, operations.get(opName));
+        }
+        
+        parser.parse(args);
 
-            //SensorConfig config = SensorConfig.newBuilder().setInterval(154).setHasADC1(false).setHasADC2(false).setHasRain(false).build();
-            
-			CoapClient client = new CoapClient();
-            //ByteArrayOutputStream out = new ByteArrayOutputStream();
-            //config.writeDelimitedTo(out);
-            
-			//CoapResponse response = client.post(out.toByteArray(), MediaTypeRegistry.APPLICATION_OCTET_STREAM);
+        if (options.shouldShowHelp()) {
+            parser.usage();
+            System.exit(EXIT_SUCCESS);
+        }
+        
+        if (parser.getParsedCommand() == null) {
+            throw new ParameterException("Command is required");
+        }
 
-			//if (response != null && response.isSuccess()) {
-            //    System.out.println("Posted config!");
-            //}
-            
-            CoapResponse response;
-            
-            while (true) {
-                client.setURI(PREFIX + args[0] + SUFFIX);
-                
-                response = client.get();
-                
-			    if (response != null && response.isSuccess()) {
-                    Sample sample = Sample.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
-                    //config = SensorConfig.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
-                    
-				    System.out.println();
-
-                    //System.out.println(config);
-                
-                    System.out.println(sample);
-
-                    client.setURI(PREFIX + args[0] + SUFFIX + "/" + Integer.toString(sample.getId()));
-                    response = client.delete();
-
-                    if (response.isSuccess()) {
-                        System.out.println("Succesfully deleted Sample " + Integer.toString(sample.getId()));
-                    }
-                }
-            }
-		}*/
+        return parser.getParsedCommand();
+    }
 }
