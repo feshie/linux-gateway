@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.mountainsensing.fetcher.Operation;
@@ -16,7 +18,9 @@ import org.mountainsensing.pb.Readings.Sample;
  *
  */
 public abstract class SampleOperation extends Operation {
-
+    
+    private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
+    
     private static final int LATEST_SAMPLE = 0;
 
     private static final int NO_MORE_SAMPLES = -1;
@@ -62,16 +66,19 @@ public abstract class SampleOperation extends Operation {
         @Override
         public int processSample(URI uri, int timeout) throws IOException {
             Sample sample = getSample(uri);
+
+            log.log(Level.INFO, "Got sample with id {0} from node {1}", new Object[] {sample.getId(), uri.getHost()});
             
             // Substring strips the aquare backets from around the IPv6 address
             File file = new File(dir + System.currentTimeMillis() + "_" + uri.getHost().substring(1, uri.getHost().length() - 1));
             try (FileOutputStream fileStream = new FileOutputStream(file)) {
                 sample.writeDelimitedTo(fileStream);
                 fileStream.flush();
-                System.out.println("Sample saved to file: " + file.toString());
+                log.log(Level.INFO, "Saved sample to file {0}", file);
             }
             
             deleteSample(getURI(uri, sample.getId()));
+            log.log(Level.INFO, "Sample {0} deleted from node", sample.getId());
             // Always just get the latest sample, seeing as we've deleted the previous one.
             return LATEST_SAMPLE;
         }
@@ -80,27 +87,27 @@ public abstract class SampleOperation extends Operation {
     public Sample getSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
         //client.setTimeout(timeout);
-        System.out.println("Attempting to get sample from: " + client.getURI());
+        log.log(Level.FINE, "Attempting to get sample from: {0}", client.getURI());
         
         CoapResponse response = client.get();
         if (response != null && response.isSuccess()) {
             return Sample.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
         }
 
-        throw new IOException(); 
+        throw new IOException("Unable to get sample from " + uri); 
     }
     
     public void deleteSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
         
-        System.out.println("Attempting to delete sample from: " + client.getURI());
+        log.log(Level.FINE, "Attempting to delete sample from: {0}", client.getURI());
 
         CoapResponse response = client.delete();
         if (response != null && response.isSuccess()) {
             return; 
         }
 
-        throw new IOException();
+        throw new IOException("Unable to delete sample from: " + uri);
     }
 
     @Override

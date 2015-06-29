@@ -7,6 +7,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mountainsensing.fetcher.operations.*;
@@ -31,6 +33,8 @@ public class Main {
         operations.put("get-date", new DateOperation.Get());
         operations.put("set-date", new DateOperation.Set());
     }
+
+    private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
     
     /**
      * Protocol to use for communication with nodes.
@@ -48,8 +52,7 @@ public class Main {
     private static final int EXIT_FAILURE = 1;
 
     public static void main(String[] args) {
-        Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
-        californiumLogger.setLevel(Level.WARNING);
+        setupLogging();
         
         Options options = new Options();
         Operation operation = null;
@@ -65,8 +68,8 @@ public class Main {
             URI uri ;
             try {
                 uri = new URI(PROTOCOL + "[" + options.getPrefix() + node + "]" + "/" + operation.getRessource() + "/");
-            } catch (URISyntaxException ex) {
-                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (URISyntaxException e) {
+                log.log(Level.WARNING, e.getMessage(), e);
                 continue;
             }
 
@@ -74,8 +77,8 @@ public class Main {
                 try {
                     operation.processNode(uri, options.getTimeout());
                     break;
-                } catch (IOException ex) {
-                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException e) {
+                    log.log(Level.WARNING, e.getMessage(), e);
                 }
             }
         }
@@ -107,5 +110,26 @@ public class Main {
         }
 
         return parser.getParsedCommand();
+    }
+    
+    /**
+     * 
+     */
+    private static void setupLogging() {
+        Logger rootLogger = Logger.getLogger("");
+        rootLogger.setLevel(Level.INFO);
+        
+        // Remove any existing handlers
+        for (Handler handler : rootLogger.getHandlers()) {
+            rootLogger.removeHandler(handler);
+        }
+
+        ConsoleHandler console = new ConsoleHandler();
+        console.setFormatter(new LogFormatter());
+        rootLogger.addHandler(console);
+        
+        // Supress some of the californium logging
+        Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
+        californiumLogger.setLevel(Level.WARNING);
     }
 }

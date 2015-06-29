@@ -3,12 +3,15 @@ package org.mountainsensing.fetcher.operations;
 import com.beust.jcommander.Parameters;
 import java.io.IOException;
 import java.net.URI;
+import java.util.logging.Logger;
 import org.mountainsensing.fetcher.Operation;
 
 /**
  *
  */
 public abstract class DateOperation extends Operation {
+    
+    private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
     
     static final String RESSOURCE = "date";
     
