@@ -69,10 +69,10 @@ public abstract class ConfigOperation extends Operation {
         @Parameter(names = {"-i", "--interval"}, description = "Sampling interval in seconds")
         private int interval = 1200;
 
-        @Parameter(names = {"-a", "--avr"}, converter = FileConverter.class, description = "AVR(s) connected to the node(s)")
+        @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, description = "ID of AVR(s) connected to the node(s), in hex")
         private List<Integer> avrs = new ArrayList<>();
 
-        public class FileConverter implements IStringConverter<Integer> {
+        public static class HexConverter implements IStringConverter<Integer> {
             @Override
             public Integer convert(String value) {
                 return Integer.parseInt(value, 16);
