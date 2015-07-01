@@ -33,7 +33,7 @@ public abstract class ConfigOperation extends Operation {
     public static class Get extends ConfigOperation {
 
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
+        public void processNode(URI uri) throws IOException {
 			CoapClient client = new CoapClient(uri);
             
             log.log(Level.FINE, "Attempting to get config from: {0}", client.getURI());
@@ -80,7 +80,7 @@ public abstract class ConfigOperation extends Operation {
         }
 
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
+        public void processNode(URI uri) throws IOException {
             SensorConfig config = SensorConfig.newBuilder().setInterval(interval).setHasADC1(hasAdc1).setHasADC2(hasAdc2).setHasRain(hasRain).addAllAvrIDs(avrs).build();
             
 			CoapClient client = new CoapClient(uri);

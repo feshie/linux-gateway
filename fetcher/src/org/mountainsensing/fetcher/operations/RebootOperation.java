@@ -27,7 +27,7 @@ public abstract class RebootOperation extends Operation {
     public static class Force extends RebootOperation {
 
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
+        public void processNode(URI uri) throws IOException {
             CoapClient client = new CoapClient(uri);
             // Rediculously short timeout - we don't actually expect a response.
             client.setTimeout(1000);
@@ -43,7 +43,7 @@ public abstract class RebootOperation extends Operation {
     public static class Get extends RebootOperation {
 
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
+        public void processNode(URI uri) throws IOException {
             CoapClient client = new CoapClient(uri);
             CoapResponse response = client.get();
 

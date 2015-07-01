@@ -22,7 +22,7 @@ public abstract class DateOperation extends Operation {
     public static class Get extends DateOperation {
 
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
+        public void processNode(URI uri) throws IOException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }
@@ -34,7 +34,7 @@ public abstract class DateOperation extends Operation {
     public static class Set extends DateOperation {
 
         @Override
-        public void processNode(URI uri, int timeout) throws IOException {
+        public void processNode(URI uri) throws IOException {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
     }

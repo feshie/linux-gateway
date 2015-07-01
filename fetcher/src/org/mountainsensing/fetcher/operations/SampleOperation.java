@@ -43,7 +43,7 @@ public abstract class SampleOperation extends Operation {
     public static class Get extends SampleOperation {
         
         @Override
-        public int processSample(URI uri, int timeout) throws IOException {
+        public int processSample(URI uri) throws IOException {
             Sample sample = getSample(uri);
             log.log(Level.INFO, "Got sample: \n{0}", sample);
 
@@ -56,7 +56,7 @@ public abstract class SampleOperation extends Operation {
     public static class Delete extends SampleOperation {
 
         @Override
-        public int processSample(URI uri, int timeout) throws IOException {
+        public int processSample(URI uri) throws IOException {
             deleteSample(uri);
             log.log(Level.INFO, "Deleted sample: {0}", uri);
             
@@ -72,7 +72,7 @@ public abstract class SampleOperation extends Operation {
         private String dir = "/ms/queue/";
 
         @Override
-        public int processSample(URI uri, int timeout) throws IOException {
+        public int processSample(URI uri) throws IOException {
             Sample sample = getSample(uri);
 
             log.log(Level.INFO, "Got sample with id {0} from node {1}", new Object[] {sample.getId(), uri.getHost()});
@@ -94,7 +94,6 @@ public abstract class SampleOperation extends Operation {
       
     public Sample getSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
-        //client.setTimeout(timeout);
         log.log(Level.FINE, "Attempting to get sample from: {0}", client.getURI());
         
         CoapResponse response = client.get();
@@ -119,18 +118,18 @@ public abstract class SampleOperation extends Operation {
     }
 
     @Override
-    public void processNode(URI uri, int timeout) throws IOException {
+    public void processNode(URI uri) throws IOException {
         // If request, process all samples
         if (shouldProcessAll) {
             int nextSample = LATEST_SAMPLE;
 
             while (nextSample != NO_MORE_SAMPLES) {
-                nextSample = processSample(getURI(uri, nextSample), timeout);
+                nextSample = processSample(getURI(uri, nextSample));
             }
         
         // Otherwise just process the requested sample.
         } else {
-            processSample(getURI(uri, sampleId), timeout);
+            processSample(getURI(uri, sampleId));
         }
     }
     
@@ -141,7 +140,7 @@ public abstract class SampleOperation extends Operation {
      * @return
      * @throws IOException 
      */
-    public abstract int processSample(URI uri, int timeout) throws IOException;
+    public abstract int processSample(URI uri) throws IOException;
     
     protected int getNextSample(int currentSample) {
         return currentSample - 1;

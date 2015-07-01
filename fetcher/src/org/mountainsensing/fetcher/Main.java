@@ -11,6 +11,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.mountainsensing.fetcher.operations.*;
 
 /**
@@ -45,6 +46,11 @@ public class Main {
     private static final String PROTOCOL = "coap://";
 
     /**
+     * Californium key for the timeout property.
+     */
+    private static final String COAP_TIMEOUT_KEY = "ACK_TIMEOUT"; 
+
+    /**
      * Exit code indicating success.
      */
     private static final int EXIT_SUCCESS = 0;
@@ -67,6 +73,13 @@ public class Main {
             System.exit(EXIT_FAILURE);
         }
         
+        // Don't save / read from the Californium.properties file
+        NetworkConfig config = NetworkConfig.createStandardWithoutFile();
+        // Nedd to scale the timeout from seconds to ms
+        config.setInt(COAP_TIMEOUT_KEY, options.getTimeout() * 1000);
+        NetworkConfig.setStandard(config);
+        
+        // Actually do whatever we should do
         for (String node : operation.getNodes()) {
             URI uri ;
             try {
@@ -78,7 +91,7 @@ public class Main {
 
             for (int i = 0; i < options.getRetries(); i++) {
                 try {
-                    operation.processNode(uri, options.getTimeout());
+                    operation.processNode(uri);
                     break;
                 } catch (IOException e) {
                     log.log(Level.WARNING, e.getMessage(), e);
