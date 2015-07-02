@@ -53,7 +53,7 @@ public abstract class RebootOperation extends Operation {
             }
 
             log.log(Level.FINER, "Failed to get reboot count from {0}", client.getURI());
-            throw new IOException("Failed to get reboot count from {0}: " + client.getURI());
+            throw new IOException("Failed to get reboot count from: " + client.getURI());
         }
     }
 
