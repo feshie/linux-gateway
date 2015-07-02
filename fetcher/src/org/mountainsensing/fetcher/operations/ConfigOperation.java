@@ -16,6 +16,7 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.Operation;
 import org.mountainsensing.pb.Settings.SensorConfig;
+import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
 
 /**
  *
@@ -56,7 +57,7 @@ public abstract class ConfigOperation extends Operation {
      */
     @Parameters(commandDescription = "Set the configuration of the node(s)")
     public static class Set extends ConfigOperation {
-        
+
         @Parameter(names = {"-a1", "--adc1"}, description = "ADC1 should be enabled")
         private boolean hasAdc1 = false;
         
@@ -72,6 +73,9 @@ public abstract class ConfigOperation extends Operation {
         @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, description = "ID of AVR(s) connected to the node(s), in hex")
         private List<Integer> avrs = new ArrayList<>();
 
+        @Parameter(names = {"-m", "--routing-mode"}, converter = RoutingModeConverter.class, description = "Routing mode of the node(s).")
+        private RoutingMode routingMode = RoutingMode.MESH;
+
         public static class HexConverter implements IStringConverter<Integer> {
             @Override
             public Integer convert(String value) {
@@ -79,9 +83,16 @@ public abstract class ConfigOperation extends Operation {
             }
         }
 
+        public static class RoutingModeConverter implements IStringConverter<RoutingMode> {
+            @Override
+            public RoutingMode convert(String value) {
+                return RoutingMode.valueOf(value);
+            }
+        }
+
         @Override
         public void processNode(URI uri) throws IOException {
-            SensorConfig config = SensorConfig.newBuilder().setInterval(interval).setHasADC1(hasAdc1).setHasADC2(hasAdc2).setHasRain(hasRain).addAllAvrIDs(avrs).build();
+            SensorConfig config = SensorConfig.newBuilder().setInterval(interval).setHasADC1(hasAdc1).setHasADC2(hasAdc2).setHasRain(hasRain).addAllAvrIDs(avrs).setRoutingMode(routingMode).build();
             
 			CoapClient client = new CoapClient(uri);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
