@@ -3,6 +3,7 @@ package org.mountainsensing.fetcher.operations;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,11 +44,11 @@ public abstract class ConfigOperation extends Operation {
             
             if (response != null && response.isSuccess()) {
                 SensorConfig config = SensorConfig.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
-                log.log(Level.FINER, "Config succesfully got from {0}", client.getURI());
-                System.out.println(config);
+                log.log(Level.INFO, "Config is \n{0}", configToString(config));
                 return;
             }
 
+            log.log(Level.FINER, "Failed to get config from {0}", client.getURI());
             throw new IOException("Failed to get config from: " + client.getURI());
         }
     }
@@ -102,7 +103,7 @@ public abstract class ConfigOperation extends Operation {
             
 			CoapResponse response = client.post(out.toByteArray(), MediaTypeRegistry.APPLICATION_OCTET_STREAM);
 			if (response != null && response.isSuccess()) {
-                log.log(Level.INFO, "Config set to \n{0}", config);
+                log.log(Level.INFO, "Config set to \n{0}", configToString(config));
                 return;
             }
             
@@ -114,5 +115,37 @@ public abstract class ConfigOperation extends Operation {
     @Override
     public String getRessource() {
         return RESSOURCE;
+    }
+
+    /**
+     * Get a String representation of a config.
+     * @param config The configuration
+     * @return A string representing the config, properly formatted.
+     */
+    private static String configToString(SensorConfig config) {
+        String result = new String();
+        for (FieldDescriptor descriptor : config.getAllFields().keySet()) {
+
+            result += descriptor.getName() + ": ";
+
+            // Field 4 is the AVR ID, we need to handle it sepcially to print hex.
+            // Index here is 0 indexed, so field 3.
+            if (descriptor.getIndex() == 3) {
+                result += "[";
+                String sep = "";
+                for (int avr : config.getAvrIDsList()) {
+                    result += sep + Integer.toHexString(avr);
+                    sep = ", ";
+                }
+                result += "]";
+
+            // Print all the rest normally
+            } else {
+                result += config.getAllFields().get(descriptor).toString();
+            }
+
+            result += System.lineSeparator();
+        }
+        return result;
     }
 }
