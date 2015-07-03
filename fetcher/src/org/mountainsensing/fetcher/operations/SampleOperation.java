@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,6 +14,8 @@ import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.mountainsensing.fetcher.Operation;
 import org.mountainsensing.pb.Readings.Sample;
+import org.mountainsensing.pb.Rs485Message;
+import org.mountainsensing.pb.Rs485Message.Rs485;
 
 /**
  *
@@ -46,6 +49,13 @@ public abstract class SampleOperation extends Operation {
         public int processSample(URI uri) throws IOException {
             Sample sample = getSample(uri);
             log.log(Level.INFO, "Got sample: \n{0}", sample);
+
+            if (sample.hasAVR()) {
+                try (InputStream rsin = new ByteArrayInputStream(sample.getAVR().toByteArray())) {
+                    Rs485 rs485 = Rs485.parseFrom(rsin);
+                    log.log(Level.INFO, "RS485: \n{0}", rs485);
+                }
+            }
 
             // Subtract 1 from the id to try and find a previous sample
             return sample.getId() - 1;
