@@ -48,7 +48,7 @@ public abstract class DateOperation extends Operation {
             }
 
             log.log(Level.FINER, "Failed to get date from {0}", client.getURI());
-            throw new IOException("Failed to get date from {0}: " + client.getURI());
+            throw new IOException("Failed to get date from: " + client.getURI());
         }
     }
     
