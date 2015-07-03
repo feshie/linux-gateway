@@ -36,6 +36,8 @@ public class Main {
 
         operations.put("get-reboot", new RebootOperation.Get());
         operations.put("force-reboot", new RebootOperation.Force());
+
+        operations.put("get-routes", new RouteOperation.Get());
     }
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
