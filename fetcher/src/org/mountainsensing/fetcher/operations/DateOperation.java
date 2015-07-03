@@ -5,15 +5,15 @@ import com.beust.jcommander.Parameters;
 import java.io.IOException;
 import java.net.URI;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.mountainsensing.fetcher.EpochDate;
 import org.mountainsensing.fetcher.Operation;
+import org.mountainsensing.fetcher.UTCDateFormat;
 
 /**
  *
@@ -24,10 +24,7 @@ public abstract class DateOperation extends Operation {
     
     private static final String RESSOURCE = "date";
 
-    private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-    static {
-        dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
+    private static final DateFormat dateFormat = new UTCDateFormat();
     
     /**
      *
@@ -42,7 +39,7 @@ public abstract class DateOperation extends Operation {
 
             if (response != null && response.isSuccess()) {
                 // Scale the seconds to ms
-                Date date = new Date(Long.parseLong(response.getResponseText()) * 1000);
+                Date date = new EpochDate(Long.parseLong(response.getResponseText()));
                 log.log(Level.INFO, "Epoch is {0}, aka {1}", new Object[]{response.getResponseText(), dateFormat.format(date)});
                 return;
             }
@@ -66,10 +63,9 @@ public abstract class DateOperation extends Operation {
             CoapClient client = new CoapClient(uri);
             
             // Get a date option represeting the current time, or if sepcified the command line param time
-            Date date = epoch == null ? new Date() : new Date((long)epoch * 1000);
+            EpochDate date = epoch == null ? new EpochDate() : new EpochDate(epoch);
             
-            // Scale from ms to seconds
-            String time = Long.toString(date.getTime() / 1000);
+            String time = Long.toString(date.getEpoch());
             
             CoapResponse response = client.post(time, MediaTypeRegistry.TEXT_PLAIN);
             if (response != null && response.isSuccess()) {
