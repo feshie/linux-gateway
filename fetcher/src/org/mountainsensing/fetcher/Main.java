@@ -1,5 +1,6 @@
 package org.mountainsensing.fetcher;
 
+import org.mountainsensing.fetcher.utils.LogFormatter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import java.io.IOException;

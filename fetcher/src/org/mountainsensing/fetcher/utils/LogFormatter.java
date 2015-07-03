@@ -1,4 +1,4 @@
-package org.mountainsensing.fetcher;
+package org.mountainsensing.fetcher.utils;
 
 import java.text.MessageFormat;
 import java.util.Date;

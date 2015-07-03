@@ -13,9 +13,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
-import org.mountainsensing.fetcher.EpochDate;
+import org.eclipse.californium.core.coap.CoAP.ResponseCode;
+import org.mountainsensing.fetcher.utils.EpochDate;
+import org.mountainsensing.fetcher.Main;
 import org.mountainsensing.fetcher.Operation;
-import org.mountainsensing.fetcher.UTCDateFormat;
+import org.mountainsensing.fetcher.utils.UTCDateFormat;
 import org.mountainsensing.pb.Readings.Sample;
 import org.mountainsensing.pb.Rs485Message.Rs485;
 

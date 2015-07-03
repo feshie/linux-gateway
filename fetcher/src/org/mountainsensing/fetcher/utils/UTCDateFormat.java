@@ -1,4 +1,4 @@
-package org.mountainsensing.fetcher;
+package org.mountainsensing.fetcher.utils;
 
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
