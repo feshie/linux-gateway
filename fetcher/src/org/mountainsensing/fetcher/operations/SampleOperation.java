@@ -2,6 +2,7 @@ package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,9 +13,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
+import org.mountainsensing.fetcher.EpochDate;
 import org.mountainsensing.fetcher.Operation;
+import org.mountainsensing.fetcher.UTCDateFormat;
 import org.mountainsensing.pb.Readings.Sample;
-import org.mountainsensing.pb.Rs485Message;
 import org.mountainsensing.pb.Rs485Message.Rs485;
 
 /**
@@ -48,7 +50,7 @@ public abstract class SampleOperation extends Operation {
         @Override
         public int processSample(URI uri) throws IOException {
             Sample sample = getSample(uri);
-            log.log(Level.INFO, "Got sample: \n{0}", sample);
+            log.log(Level.INFO, "Got sample: \n{0}", sampleToString(sample));
 
             if (sample.hasAVR()) {
                 try (InputStream rsin = new ByteArrayInputStream(sample.getAVR().toByteArray())) {
@@ -163,5 +165,34 @@ public abstract class SampleOperation extends Operation {
     @Override
     public String getRessource() {
         return RESSOURCE;
+    }
+
+    /**
+     * Get a String representation of a sample.
+     * @param config The sample
+     * @return A string representing the sample, properly formatted.
+     */
+    private static String sampleToString(Sample sample) {
+        String result = new String();
+        for (FieldDescriptor descriptor : sample.getAllFields().keySet()) {
+
+            result += descriptor.getName() + ": ";
+
+            // Field 1 is the sampling time, we need to handle it sepcially to print epoch + human readable time.
+            // Index here is 0 indexed, so field 0.
+            if (descriptor.getIndex() == 0) {
+                result += Long.toString(sample.getTime());
+                result += " aka ";
+                // Scale date from s to ms
+                result += new UTCDateFormat().format(new EpochDate(sample.getTime()));
+
+            // Print all the rest normally
+            } else {
+                result += sample.getAllFields().get(descriptor).toString();
+            }
+
+            result += System.lineSeparator();
+        }
+        return result;
     }
 }
