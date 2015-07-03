@@ -3,8 +3,11 @@ package org.mountainsensing.fetcher;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
@@ -62,8 +65,25 @@ public class Main {
      */
     private static final int EXIT_FAILURE = 1;
 
+    /**
+     * Port to use for the lockSocket.
+     * GlacsWeb Bay phone number.
+     */
+    private static final int LOCK_PORT = 24583;
+
+    /**
+     * Socket kept for the lifetime of the application.
+     * Ensures that only one instance can run at a time, in a portable, cross platform way.
+     */
+    private static ServerSocket lockSocket;
+
     public static void main(String[] args) {
         setupLogging();
+
+        if (!isOnlyInstance()) {
+            log.log(Level.SEVERE, "Another instance is already running.");
+            System.exit(EXIT_FAILURE);
+        }
         
         Options options = new Options();
         Operation operation = null;
@@ -149,5 +169,32 @@ public class Main {
         // Supress some of the californium logging
         Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
         californiumLogger.setLevel(Level.WARNING);
+    }
+
+    /**
+     * Check if this is the only instance of this application running.
+     * @return True if this is the only instance, false otherwise.
+     */
+    private static boolean isOnlyInstance() {
+        // Add a shutdown hook to close the socket on shutdown.
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                if (lockSocket != null) {
+                    try {
+                        lockSocket.close();
+                    } catch (IOException ex) {
+                        log.log(Level.SEVERE, "Failed to close lock socket!", ex);
+                    }
+                }
+            }
+        });
+
+        try {
+            lockSocket = new ServerSocket(LOCK_PORT, 1, InetAddress.getLocalHost());
+            return true;
+        } catch (IOException ex) {
+            return false;
+        }
     }
 }
