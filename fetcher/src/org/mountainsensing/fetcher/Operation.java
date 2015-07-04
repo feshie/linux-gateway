@@ -26,11 +26,10 @@ public abstract class Operation {
     /**
      * 
      * @param uri
-     * @param timeout
-     * @return 
-     * @throws java.io.IOException 
+     * @throws org.mountainsensing.fetcher.CoapException If a CoAP I/O error occurs.
+     * @throws java.io.IOException If an I/O error occurs other than CoAP.
      */
-    public abstract void processNode(URI uri) throws IOException;
+    public abstract void processNode(URI uri) throws CoapException, IOException;
 
     protected List<String> getNodes() {
         return nodes;   

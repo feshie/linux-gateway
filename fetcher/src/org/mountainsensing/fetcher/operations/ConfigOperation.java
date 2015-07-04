@@ -16,6 +16,8 @@ import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.Operation;
+import org.mountainsensing.fetcher.CoapException;
+import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.pb.Settings.SensorConfig;
 import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
 
@@ -35,7 +37,7 @@ public abstract class ConfigOperation extends Operation {
     public static class Get extends ConfigOperation {
 
         @Override
-        public void processNode(URI uri) throws IOException {
+        public void processNode(URI uri) throws CoapException, IOException {
 			CoapClient client = new CoapClient(uri);
             
             log.log(Level.FINE, "Attempting to get config from: {0}", client.getURI());
@@ -48,8 +50,7 @@ public abstract class ConfigOperation extends Operation {
                 return;
             }
 
-            log.log(Level.FINER, "Failed to get config from {0}", client.getURI());
-            throw new IOException("Failed to get config from: " + client.getURI());
+            throw new CoapException(uri, Method.GET, response, "Failed to get config");
         }
     }
 
@@ -92,7 +93,7 @@ public abstract class ConfigOperation extends Operation {
         }
 
         @Override
-        public void processNode(URI uri) throws IOException {
+        public void processNode(URI uri) throws CoapException, IOException {
             SensorConfig config = SensorConfig.newBuilder().setInterval(interval).setHasADC1(hasAdc1).setHasADC2(hasAdc2).setHasRain(hasRain).addAllAvrIDs(avrs).setRoutingMode(routingMode).build();
             
 			CoapClient client = new CoapClient(uri);
@@ -107,8 +108,7 @@ public abstract class ConfigOperation extends Operation {
                 return;
             }
             
-            log.log(Level.FINER, "Failed to post config to {0}", client.getURI());
-            throw new IOException("Failed to post config to: " + client.getURI());
+            throw new CoapException(uri, Method.POST, response, "Failed to post config");
         }
     }
 

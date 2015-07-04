@@ -9,6 +9,8 @@ import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.mountainsensing.fetcher.CoapException;
+import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.Operation;
 
 /**
@@ -52,8 +54,7 @@ public abstract class RebootOperation extends Operation {
                 return;
             }
 
-            log.log(Level.FINER, "Failed to get reboot count from {0}", client.getURI());
-            throw new IOException("Failed to get reboot count from: " + client.getURI());
+            throw new CoapException(uri, Method.GET, response, "Failed to get reboot count");
         }
     }
 

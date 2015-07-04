@@ -128,6 +128,8 @@ public class Main {
                 try {
                     operation.processNode(uri);
                     break;
+                } catch (CoapException e) {
+                    log.log(Level.WARNING, e.getMessage() + ". Got CoAP response " + e.getCode() + " using " + e.getMethod() + " on " + e.getURI(), e);
                 } catch (IOException e) {
                     log.log(Level.WARNING, e.getMessage(), e);
                 }

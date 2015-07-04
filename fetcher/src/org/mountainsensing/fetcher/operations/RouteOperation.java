@@ -14,6 +14,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
+import org.mountainsensing.fetcher.CoapException;
+import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.Operation;
 
 /**
@@ -60,8 +62,7 @@ public abstract class RouteOperation extends Operation {
                 return;
             }
 
-            log.log(Level.FINER, "Failed to get routes from {0}", client.getURI());
-            throw new IOException("Failed to get routes from: " + client.getURI());
+            throw new CoapException(uri, Method.GET, response, "Failed to get routes");
         }
     }
 

@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
+import org.mountainsensing.fetcher.CoapException;
+import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
 import org.mountainsensing.fetcher.Operation;
 import org.mountainsensing.fetcher.utils.UTCDateFormat;
@@ -38,14 +40,12 @@ public abstract class DateOperation extends Operation {
             CoapResponse response = client.get();
 
             if (response != null && response.isSuccess()) {
-                // Scale the seconds to ms
                 Date date = new EpochDate(Long.parseLong(response.getResponseText()));
                 log.log(Level.INFO, "Epoch is {0}, aka {1}", new Object[]{response.getResponseText(), dateFormat.format(date)});
                 return;
             }
 
-            log.log(Level.FINER, "Failed to get date from {0}", client.getURI());
-            throw new IOException("Failed to get date from: " + client.getURI());
+            throw new CoapException(uri, Method.GET, response, "Failed to get date");
         }
     }
     
@@ -73,8 +73,7 @@ public abstract class DateOperation extends Operation {
                 return;
             }
             
-            log.log(Level.FINER, "Failed to set time to {0}", uri);
-            throw new IOException("Failed to set time to: " + uri); 
+            throw new CoapException(uri, Method.POST, response, "Failed to set time");
         }
     }
 
