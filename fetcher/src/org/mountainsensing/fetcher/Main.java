@@ -83,6 +83,11 @@ public class Main {
      */
     private static Options options;
 
+    /**
+     * The log formatter to use to provide context information.
+     */
+    private static LogFormatter logFormatter;
+
     public static void main(String[] args) {
         setupLogging();
 
@@ -109,13 +114,15 @@ public class Main {
         
         // Actually do whatever we should do
         for (String node : operation.getNodes()) {
-            URI uri ;
+            URI uri;
             try {
                 uri = new URI(PROTOCOL + "[" + options.getPrefix() + node + "]" + "/" + operation.getRessource() + "/");
             } catch (URISyntaxException e) {
                 log.log(Level.WARNING, e.getMessage(), e);
                 continue;
             }
+
+            logFormatter.setContext(uri);
 
             for (int i = 0; i < options.getRetries(); i++) {
                 try {
@@ -125,6 +132,8 @@ public class Main {
                     log.log(Level.WARNING, e.getMessage(), e);
                 }
             }
+
+            logFormatter.clearContext();
         }
     }
     
@@ -169,7 +178,8 @@ public class Main {
         }
 
         ConsoleHandler console = new ConsoleHandler();
-        console.setFormatter(new LogFormatter());
+        logFormatter = new LogFormatter();
+        console.setFormatter(logFormatter);
         rootLogger.addHandler(console);
         
         // Supress some of the californium logging
