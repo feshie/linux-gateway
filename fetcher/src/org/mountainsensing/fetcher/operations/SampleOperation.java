@@ -1,6 +1,8 @@
 package org.mountainsensing.fetcher.operations;
 
+import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.google.protobuf.Descriptors.FieldDescriptor;
 import java.io.ByteArrayInputStream;
@@ -38,8 +40,22 @@ public abstract class SampleOperation extends Operation {
 
     private static final String RESSOURCE = "sample";
     
-    @Parameter(names = {"-s", "--sample-id"}, description = "Sample id. " + LATEST_SAMPLE + " for latest sample.")
+    @Parameter(names = {"-s", "--sample-id"}, validateWith = SampleExclusionValidator.class, description = "Sample id. " + LATEST_SAMPLE + " for latest sample.")
     private int sampleId = LATEST_SAMPLE;
+    
+    /**
+     * Ensures that any Operations who implement other means of specifying the sample (ie --all) can verify both options aren't supplied.
+     */
+    public static class SampleExclusionValidator implements IParameterValidator {
+        private static String previousName = null;
+        @Override
+        public void validate(String name, String value) throws ParameterException {
+            if (previousName != null) {
+                throw new ParameterException("Parameter " + name + " can not be used in conjunction with " + previousName);
+            }
+            previousName = name;
+        }
+    }
 
     @Parameters(commandDescription = "Get samples from the node(s)")
     public static class Get extends SampleOperation {
@@ -74,7 +90,7 @@ public abstract class SampleOperation extends Operation {
         @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples")
         private String dir = "/ms/queue/";
 
-        @Parameter(names = {"-a", "--all"}, description = "Grab all samples from the node(s). This overrides any sample-id set.")
+        @Parameter(names = {"-a", "--all"}, validateWith = SampleExclusionValidator.class, description = "Grab all samples from the node(s). This cannot be used in conjunction with --sample")
         private boolean shouldProcessAll = false;
 
         private void grabSample(URI uri) throws IOException, CoapException {
