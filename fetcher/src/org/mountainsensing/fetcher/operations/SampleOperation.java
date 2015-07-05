@@ -114,20 +114,21 @@ public abstract class SampleOperation extends Operation {
         @Override
         public void processSample(URI uri) throws IOException {
             if (shouldProcessAll) {
+                System.out.println("Processing all samples");
                 int retryAttempt = 0;
 
-                // Do the right amount of retries. Retries will be reset every time we succesfully get something.
+                // Keep going unless we ever reach MAX_RETRIES errors. Retries will be reset every time we succesfully get something.
                 while (retryAttempt < Main.getOptions().getRetries()) {
                     try {
                         grabSample(uri);
                         // Reset the retry attempt on success
                         retryAttempt = 0;
-                        break;
+                        continue;
                     } catch (CoapException e) {
                         // If not found, we've reached the last sample
                         if (e.getCode() == ResponseCode.NOT_FOUND) {
                             log.log(Level.INFO, "No more samples available");
-                            break;
+                            continue;
                         }
                         log.log(Level.WARNING, e.getMessage() + ". Got CoAP response " + e.getCode() + " using " + e.getMethod() + " on " + e.getURI(), e);
                     } catch (IOException e) {
