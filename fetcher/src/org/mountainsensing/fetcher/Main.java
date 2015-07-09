@@ -123,17 +123,25 @@ public class Main {
             }
 
             logFormatter.setContext(uri);
-
-            for (int i = 0; i < options.getRetries(); i++) {
+            
+            int retryAttempt = 0;
+            
+            // Keep going unless we ever reach MAX_RETRIES errors. Retries will be reset every time we succesfully do something.
+            do {
                 try {
                     operation.processNode(uri);
-                    break;
+                    // Reset the retry attempt on success
+                    retryAttempt = 0;
+                    continue;
                 } catch (CoapException e) {
                     log.log(Level.WARNING, e.getMessage() + ". Got CoAP response " + e.getCode() + " using " + e.getMethod() + " on " + e.getURI(), e);
                 } catch (IOException e) {
                     log.log(Level.WARNING, e.getMessage(), e);
                 }
-            }
+                
+                retryAttempt++;
+                
+            } while (operation.shouldKeepProcessingNode() && retryAttempt < options.getRetries());
 
             logFormatter.clearContext();
         }
