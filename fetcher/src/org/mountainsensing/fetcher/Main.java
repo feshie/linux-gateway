@@ -153,6 +153,8 @@ public class Main {
 
             logFormatter.clearContext();
         }
+
+        log.log(Level.INFO, "Finished execution");
     }
     
     /**
