@@ -8,7 +8,6 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
@@ -126,7 +125,6 @@ public class Main {
             
             int retryAttempt = 0;
             
-            // Keep going unless we ever reach MAX_RETRIES errors. Retries will be reset every time we succesfully do something.
             do {
                 try {
                     operation.processNode(uri);
@@ -141,7 +139,17 @@ public class Main {
                 
                 retryAttempt++;
                 
-            } while (operation.shouldKeepProcessingNode() && retryAttempt < options.getRetries());
+            /*
+                Keep going as long as either:
+                        retryAttempt != 0 -> the most recent operation didn't succed
+                    and
+                        retryAttempt < RETRIES -> we still have attempts to try again left
+                or
+                        retryAttempt == 0 -> the most recent operation did succeed
+                    and
+                        shouldKeepProcessingNode() -> that operation needs to process the node more
+            */
+            } while ((retryAttempt != 0 && retryAttempt < options.getRetries()) || (retryAttempt == 0 && operation.shouldKeepProcessingNode()));
 
             logFormatter.clearContext();
         }
@@ -176,7 +184,7 @@ public class Main {
     }
     
     /**
-     * 
+     * Setup the logger to use, and it's associated formatter.
      */
     private static void setupLogging() {
         Logger rootLogger = Logger.getLogger("");
