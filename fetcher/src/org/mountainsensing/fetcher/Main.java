@@ -78,11 +78,6 @@ public class Main {
     private static ServerSocket lockSocket;
 
     /**
-     * The options to use.
-     */
-    private static Options options;
-
-    /**
      * The log formatter to use to provide context information.
      */
     private static LogFormatter logFormatter;
@@ -95,7 +90,7 @@ public class Main {
             System.exit(EXIT_FAILURE);
         }
         
-        options = new Options();
+        Options options = new Options();
         Operation operation = null;
         
         try {
@@ -232,13 +227,5 @@ public class Main {
         } catch (IOException ex) {
             return false;
         }
-    }
-
-    /**
-     * Get the current Options in use.
-     * @return The options to use.
-     */
-    public static Options getOptions() {
-        return options;
     }
 }
