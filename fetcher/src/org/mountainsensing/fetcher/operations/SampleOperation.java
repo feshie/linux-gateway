@@ -19,9 +19,7 @@ import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
-import org.mountainsensing.fetcher.Main;
 import org.mountainsensing.fetcher.Operation;
-import org.mountainsensing.fetcher.utils.Pair;
 import org.mountainsensing.fetcher.utils.UTCDateFormat;
 import org.mountainsensing.pb.Readings.Sample;
 import org.mountainsensing.pb.Rs485Message.Rs485;
@@ -93,10 +91,29 @@ public abstract class SampleOperation extends Operation {
         @Parameter(names = {"-a", "--all"}, validateWith = SampleExclusionValidator.class, description = "Grab all samples from the node(s). This cannot be used in conjunction with --sample")
         private boolean shouldProcessAll = false;
 
-        private void grabSample(URI uri) throws IOException, CoapException {
-            Sample sample = getSample(uri);
+        private boolean hasReachedEnd;
 
-            log.log(Level.INFO, "Got sample with id {0} from node {1}", new Object[] {sample.getId(), uri.getHost()});
+        @Override
+        public void processSample(URI uri) throws IOException, CoapException {
+            Sample sample;
+
+            // Assume we've reached the last sample until we know otherwise.
+            hasReachedEnd = true;
+
+            try {
+                sample = getSample(uri);
+                // If we have a sample, it means we haven't reached the end.
+                hasReachedEnd = false;
+            } catch (CoapException e) {
+                // If not found, we've reached the last sample
+                if (e.getCode() == ResponseCode.NOT_FOUND) {
+                    log.log(Level.INFO, "No more samples available");
+                    return;
+                }
+                throw e;
+            }
+
+            log.log(Level.INFO, "Got sample with id {0}", sample.getId());
             
             // Substring strips the aquare backets from around the IPv6 address
             File file = new File(dir + System.currentTimeMillis() + "_" + uri.getHost().substring(1, uri.getHost().length() - 1));
@@ -108,38 +125,12 @@ public abstract class SampleOperation extends Operation {
             
             deleteSample(getURI(uri, sample.getId()));
             log.log(Level.INFO, "Sample {0} deleted from node", sample.getId());
-            // Always just get the latest sample, seeing as we've deleted the previous one.
         }
 
         @Override
-        public void processSample(URI uri) throws IOException {
-            if (shouldProcessAll) {
-                System.out.println("Processing all samples");
-                int retryAttempt = 0;
-
-                // Keep going unless we ever reach MAX_RETRIES errors. Retries will be reset every time we succesfully get something.
-                while (retryAttempt < Main.getOptions().getRetries()) {
-                    try {
-                        grabSample(uri);
-                        // Reset the retry attempt on success
-                        retryAttempt = 0;
-                        continue;
-                    } catch (CoapException e) {
-                        // If not found, we've reached the last sample
-                        if (e.getCode() == ResponseCode.NOT_FOUND) {
-                            log.log(Level.INFO, "No more samples available");
-                            continue;
-                        }
-                        log.log(Level.WARNING, e.getMessage() + ". Got CoAP response " + e.getCode() + " using " + e.getMethod() + " on " + e.getURI(), e);
-                    } catch (IOException e) {
-                        log.log(Level.WARNING, e.getMessage(), e);
-                    }
-                    retryAttempt++;
-                }
-
-            } else {
-                grabSample(uri);
-            }
+        public boolean shouldKeepProcessingNode() {
+            // We have more stuff to do with the node if we need to grab all and we haven't reached the end
+            return shouldProcessAll && !hasReachedEnd;
         }
     }
 
