@@ -24,7 +24,10 @@ public class Options {
     private int retries = 3;
 
     @Parameter(names = {"-h", "--help"}, description = "Show usage help and exit", help = true)
-    private boolean help;
+    private boolean help = false;
+
+    @Parameter(names = {"-v", "--version"}, description = "Print the version and exit")
+    private boolean version = false;
 
     /**
      * 
@@ -56,5 +59,13 @@ public class Options {
      */
     public boolean shouldShowHelp() {
         return help;
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    public boolean shouldShowVersion() {
+        return version;
     }
 }

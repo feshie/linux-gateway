@@ -172,6 +172,11 @@ public class Main {
             parser.usage();
             System.exit(EXIT_SUCCESS);
         }
+
+        if (options.shouldShowVersion()) {
+            System.out.println(getVersion());
+            System.exit(EXIT_SUCCESS);
+        }
         
         if (parser.getParsedCommand() == null) {
             throw new ParameterException("Command is required");
@@ -227,5 +232,13 @@ public class Main {
         } catch (IOException ex) {
             return false;
         }
+    }
+
+    /**
+     * Get the version of this JAR.
+     * @return A String representing the version.
+     */
+    private static String getVersion() {
+        return Main.class.getPackage().getImplementationVersion();
     }
 }

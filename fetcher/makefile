@@ -16,6 +16,10 @@ OUTPUT_NAME:=fetcher.jar
 # Main class - will be specified in the manifest
 MAIN:=org.mountainsensing.fetcher.Main
 
+# Command to get the Version/ Revision number of the JAR. Will be set to unknown if command returns != 0
+# (--dirty will show when wordking dir is dirty, --always will always print a version, even if there is no tag)
+VERSION_CMD:=git describe --long --tags --dirty --always
+
 #############
 # Variables
 #############
@@ -67,6 +71,9 @@ COMPILE:=$(OBJDIR).compile
 
 # Folder JAR will be made from
 JARDIR:=$(OBJDIR)jar/
+
+# Version of the JAR
+VERSION:=$(shell version=`$(VERSION_CMD) 2>/dev/null`; if [ $$? -eq 0 ]; then echo "$$version"; else echo "UNKNOWN"; fi)
 
 #############
 # Debug
@@ -121,6 +128,7 @@ $(MANIFEST): $(LIBS_TAG) | $(OBJDIR)$(DIRTAG)
 	echo "Class-Path: ." >> $@
 	echo "Sealed: true" >> $@
 	echo "Main-Class: $(MAIN)" >> $@
+	echo "Implementation-Version: $(VERSION)" >> $@
 
 # Rule to build a jar
 $(OUTPUT_NAME): $(COMPILE) $(LIBS_TAG) $(MANIFEST)
