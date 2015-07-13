@@ -145,7 +145,7 @@ public abstract class SampleOperation extends Operation {
         log.log(Level.FINE, "Attempting to get sample from: {0}", client.getURI());
 
         CoapResponse response = client.get();
-        if (response != null) {
+        if (response != null && response.isSuccess()) {
             return Sample.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
         }
 
