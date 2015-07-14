@@ -75,6 +75,13 @@ JARDIR:=$(OBJDIR)jar/
 # Version of the JAR
 VERSION:=$(shell version=`$(VERSION_CMD) 2>/dev/null`; if [ $$? -eq 0 ]; then echo "$$version"; else echo "UNKNOWN"; fi)
 
+# Common prefix for version tag file names
+VERSION_FILE_PREFIX:=$(OBJDIR).version_
+
+# Tag file for the current version. This ensures the manifest is always up to date, even if no files have changed,
+# as the manfiest can depend on this file, which is unique per version.
+VERSION_FILE:=$(VERSION_FILE_PREFIX)$(VERSION)
+
 #############
 # Debug
 #############
@@ -121,7 +128,7 @@ $(OBJDIR).tag_%: $(LIBRARY)%.jar
 	touch $@
 
 # Rule to build the jar manifest
-$(MANIFEST): $(LIBS_TAG) | $(OBJDIR)$(DIRTAG)
+$(MANIFEST): $(LIBS_TAG) $(VERSION_FILE) | $(OBJDIR)$(DIRTAG)
 	$(MKDIR) $(@D)
 	echo "Creating manifest $(@F)"
 	echo "Manifest-Version: 1.0" > $@
@@ -129,6 +136,11 @@ $(MANIFEST): $(LIBS_TAG) | $(OBJDIR)$(DIRTAG)
 	echo "Sealed: true" >> $@
 	echo "Main-Class: $(MAIN)" >> $@
 	echo "Implementation-Version: $(VERSION)" >> $@
+
+# Rule to create the version file. We only need to touch it to mark it up to date, and delete previous version files.
+$(VERSION_FILE):
+	$(RM) $(VERSION_FILE_PREFIX)*
+	touch $@
 
 # Rule to build a jar
 $(OUTPUT_NAME): $(COMPILE) $(LIBS_TAG) $(MANIFEST)
