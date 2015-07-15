@@ -140,10 +140,15 @@ $(SOURCE_FILE): $(SOURCE) | $(JARDIR)$(DIRTAG)
 	echo $(SOURCE) > $@
 
 # Rule to extract a JAR to the build directory
+# They are extracted to a temp directory, so the manifest can be removed without clashing with our own manifest
 $(OBJDIR).tag_%: $(LIBRARY)%.jar | $(JARDIR)$(DIRTAG)
-	echo "Extracting $(<F)"
-	cd $(JARDIR); \
+	echo "Extracting $(*F)"
+	mkdir $(OBJDIR)$(*F)
+	cd $(OBJDIR)$(*F); \
 	$(JAR) xf ../../$<
+	$(RM) -r $(OBJDIR)$(*F)/META-INF/
+	cp -r $(OBJDIR)$(*F)/* $(JARDIR)
+	$(RM) -r $(OBJDIR)$(*F)
 	touch $@
 
 # Rule to build the jar manifest
