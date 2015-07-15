@@ -55,7 +55,7 @@ public abstract class SampleOperation extends Operation {
         }
     }
 
-    @Parameters(commandDescription = "Get samples from the node(s)")
+    @Parameters(commandDescription = "Get a sample from the node(s)")
     public static class Get extends SampleOperation {
         
         @Override
@@ -72,7 +72,7 @@ public abstract class SampleOperation extends Operation {
         }
     }
 
-    @Parameters(commandDescription = "Delete sample(s) from the node(s)")
+    @Parameters(commandDescription = "Delete a sample from the node(s)")
     public static class Delete extends SampleOperation {
 
         @Override
