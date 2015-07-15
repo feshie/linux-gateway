@@ -1,6 +1,7 @@
 #############
 # Settings
 #############
+
 # Directories containing source files (leave blank if current directory)
 SRC:=src/ protocol-buffers/java/
 
@@ -21,8 +22,36 @@ MAIN:=org.mountainsensing.fetcher.Main
 VERSION_CMD:=git describe --long --tags --dirty --always
 
 #############
+# Make options
+#############
+
+# Set the shell to be bash
+SHELL:=/bin/bash
+
+# Sane exit / error reporting options for bash
+# errexit: exit bash with $? if $? != 0
+# pipefail: a | b will exit with the first $? != 0 instead of the $? of b
+export SHELLOPTS:=errexit:pipefail
+
+# Delete target files on error
+.DELETE_ON_ERROR:
+
+# Disable built in suffix rules
+.SUFFIXES:
+
+# Do not echo commands
+.SILENT:
+
+# Disable builtin pattern rules
+MAKEFLAGS+=-r
+
+# Set default target
+.DEFAULT_GOAL:=build
+
+#############
 # Variables
 #############
+
 # An empty variable. Useful for getting special characters such as spaces and tabs.
 BLANK:=
 
@@ -57,9 +86,6 @@ LIBS_DIR:=$(filter-out $(LIBS_JAR),$(wildcard $(LIBRARY)*))
 # List of lib tags in the build directory
 LIBS_TAG:=$(addprefix $(OBJDIR).tag_,$(notdir $(LIBS_JAR:.jar=) $(LIBS_DIR)))
 
-# Manifest file for JAR
-MANIFEST:=$(OBJDIR)jar/META-INF/MANIFEST.MF
-
 # File used as a tag for directory creation
 DIRTAG:=.dirtag
 
@@ -71,6 +97,12 @@ COMPILE:=$(OBJDIR).compile
 
 # Folder JAR will be made from
 JARDIR:=$(OBJDIR)jar/
+
+# Directory for the JAR manifest file
+MANIFESTDIR:=$(JARDIR)META-INF/
+
+# Manifest file for JAR
+MANIFEST:=$(MANIFESTDIR)MANIFEST.MF
 
 # Version of the JAR
 VERSION:=$(shell version=`$(VERSION_CMD) 2>/dev/null`; if [ $$? -eq 0 ]; then echo "$$version"; else echo "UNKNOWN"; fi)
@@ -85,6 +117,7 @@ VERSION_FILE:=$(VERSION_FILE_PREFIX)$(VERSION)
 #############
 # Debug
 #############
+
 #$(info WILDCARD $(wildcard $(LIBRARY)*))
 #$(info LIBS_JAR $(LIBS_JAR))
 #$(info LIBS_DIR $(LIBS_DIR))
@@ -94,14 +127,6 @@ VERSION_FILE:=$(VERSION_FILE_PREFIX)$(VERSION)
 #############
 # Rules
 #############
-# Set default goal
-.DEFAULT_GOAL:=build
-
-# Do not echo commands
-.SILENT:
-
-# Delete target on error
-.DELETE_ON_ERROR:
 
 # Compile all the source files using the generated list into build/jar/
 $(COMPILE): $(SOURCE_FILE) | $(JARDIR)$(DIRTAG)
@@ -110,26 +135,19 @@ $(COMPILE): $(SOURCE_FILE) | $(JARDIR)$(DIRTAG)
 	touch $@
 
 # Rule to generate a list of source files that can be used by javac
-$(SOURCE_FILE): $(SOURCE) $(ANTLR_COMPILE) | $(JARDIR)$(DIRTAG)
+$(SOURCE_FILE): $(SOURCE) | $(JARDIR)$(DIRTAG)
 	echo "Generating list of source files $(@F)"
 	echo $(SOURCE) > $@
 
-# Rule to copy include dirs to build directory
-$(OBJDIR).tag_%: $(LIBRARY)%
-	cp -r $^ $(JARDIR)
-	touch $@
-
 # Rule to extract a JAR to the build directory
-$(OBJDIR).tag_%: $(LIBRARY)%.jar
+$(OBJDIR).tag_%: $(LIBRARY)%.jar | $(JARDIR)$(DIRTAG)
 	echo "Extracting $(<F)"
 	cd $(JARDIR); \
-	$(JAR) xf ../../$<; \
-	$(RM) -r META-INF/
+	$(JAR) xf ../../$<
 	touch $@
 
 # Rule to build the jar manifest
-$(MANIFEST): $(LIBS_TAG) $(VERSION_FILE) | $(OBJDIR)$(DIRTAG)
-	$(MKDIR) $(@D)
+$(MANIFEST): $(VERSION_FILE) | $(MANIFESTDIR)$(DIRTAG)
 	echo "Creating manifest $(@F)"
 	echo "Manifest-Version: 1.0" > $@
 	echo "Class-Path: ." >> $@
@@ -138,7 +156,7 @@ $(MANIFEST): $(LIBS_TAG) $(VERSION_FILE) | $(OBJDIR)$(DIRTAG)
 	echo "Implementation-Version: $(VERSION)" >> $@
 
 # Rule to create the version file. We only need to touch it to mark it up to date, and delete previous version files.
-$(VERSION_FILE):
+$(VERSION_FILE): | $(OBJDIR)$(DIRTAG)
 	$(RM) $(VERSION_FILE_PREFIX)*
 	touch $@
 
@@ -152,7 +170,6 @@ build: $(OUTPUT_NAME)
 
 # Tag to build a directory and it's tag
 %/$(DIRTAG):
-	echo "Creating directory $(@D)"
 	$(MKDIR) $(@D)
 	touch $@
 
