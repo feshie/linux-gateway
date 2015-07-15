@@ -85,6 +85,8 @@ public class Main {
     public static void main(String[] args) {
         setupLogging();
 
+        log.log(Level.FINE, "Version {0}", getVersion());
+
         if (!isOnlyInstance()) {
             log.log(Level.SEVERE, "Another instance is already running.");
             System.exit(EXIT_FAILURE);
