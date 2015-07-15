@@ -14,12 +14,17 @@ public class LogFormatter extends Formatter {
     /**
      * The message format to use when no context information is set.
      */
-	private static final MessageFormat messageFormat = new MessageFormat("{0,date,HH:mm:ss} [{1}]: {2}\n");
+    private static final MessageFormat MESSAGE_FORMAT = new MessageFormat("{0} [{1}]: {2}\n");
 
     /**
      * The message format to use when context information is set.
      */
-    private static final MessageFormat contextFormat = new MessageFormat("{0,date,HH:mm:ss} [{1}] {3}: {2}\n");
+    private static final MessageFormat CONTEXT_FORMAT = new MessageFormat("{0} [{1}] {3}: {2}\n");
+
+    /**
+     * The date format to use for logging.
+     */
+    private static final String DATE_FORMAT = "HH:mm:ss";
 
     /**
      * The context information.
@@ -46,14 +51,14 @@ public class LogFormatter extends Formatter {
     public String format(LogRecord record) {
         Object[] arguments = new Object[4];
         
-        arguments[0] = new Date(record.getMillis());
+        arguments[0] = new UTCDateFormat(DATE_FORMAT).format(new Date(record.getMillis()));
         arguments[1] = record.getLevel();
         arguments[2] = new MessageFormat(record.getMessage()).format(record.getParameters());
 
-        MessageFormat format = messageFormat;
+        MessageFormat format = MESSAGE_FORMAT;
         
         if (context != null) {
-            format = contextFormat;
+            format = CONTEXT_FORMAT;
             arguments[3] = context.getHost();
         } 
         

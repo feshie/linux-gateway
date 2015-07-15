@@ -25,7 +25,16 @@ public class UTCDateFormat extends SimpleDateFormat {
      * and the timezone set to UTC.
      */
     public UTCDateFormat() {
-        super(DEFAULT_FORMAT);
+        this(DEFAULT_FORMAT);
+    }
+
+    /**
+     * Create a new UTCDateFormat with a given format,
+     * and the timezone set to UTC.
+     * @param format The format String to use.
+     */
+    public UTCDateFormat(String format) {
+        super(format);
         setTimeZone(TimeZone.getTimeZone(UTC));
     }
 }
