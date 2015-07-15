@@ -56,7 +56,8 @@ public class CoapException extends IOException {
     public CoapException(URI uri, Method method, CoapResponse response, String message) {
         this(uri, method, response, message, null);
     }
-/**
+
+    /**
      * Create a new OperationException. 
      * @param uri The URI on which an error occurred.
      * @param method The method used on the URI.
@@ -103,6 +104,11 @@ public class CoapException extends IOException {
      * @return The ResponseCode received at the URL. NULL if no response was received.
      */
     public ResponseCode getCode() {
-        return response == null? null : response.getCode(); 
+        return response == null ? null : response.getCode();
+    }
+
+    @Override
+    public String getMessage() {
+        return super.getMessage() + ". Got CoAP response " + getCode() + " using " + getMethod() + " on " + getURI();
     }
 }

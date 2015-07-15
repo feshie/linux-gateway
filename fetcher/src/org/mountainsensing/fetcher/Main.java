@@ -128,8 +128,6 @@ public class Main {
                     // Reset the retry attempt on success
                     retryAttempt = 0;
                     continue;
-                } catch (CoapException e) {
-                    log.log(Level.WARNING, e.getMessage() + ". Got CoAP response " + e.getCode() + " using " + e.getMethod() + " on " + e.getURI(), e);
                 } catch (IOException e) {
                     log.log(Level.WARNING, e.getMessage(), e);
                 }
