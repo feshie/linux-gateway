@@ -58,6 +58,23 @@ public class ContextFormatter {
         return new FileFormatter();
     }
 
+    protected String format(String dateFormat, LogRecord record) {
+        Object[] arguments = new Object[5];
+        
+        arguments[0] = new UTCDateFormat(dateFormat).format(new Date(record.getMillis()));
+        arguments[1] = record.getLevel();
+        arguments[2] = new MessageFormat(record.getMessage()).format(record.getParameters());
+
+        MessageFormat format = MESSAGE_FORMAT;
+        
+        if (context != null) {
+            format = CONTEXT_FORMAT;
+            arguments[3] = context.getHost();
+        } 
+        
+        return format.format(arguments);
+    }
+
     /**
      * A formatter suitable for Console logging.
      */
@@ -70,20 +87,7 @@ public class ContextFormatter {
 
         @Override
         public String format(LogRecord record) {
-            Object[] arguments = new Object[4];
-            
-            arguments[0] = new UTCDateFormat(DATE_FORMAT).format(new Date(record.getMillis()));
-            arguments[1] = record.getLevel();
-            arguments[2] = new MessageFormat(record.getMessage()).format(record.getParameters());
-
-            MessageFormat format = MESSAGE_FORMAT;
-            
-            if (context != null) {
-                format = CONTEXT_FORMAT;
-                arguments[3] = context.getHost();
-            } 
-            
-            return format.format(arguments);
+            return ContextFormatter.this.format(DATE_FORMAT, record);
         }
     }
 
@@ -95,24 +99,11 @@ public class ContextFormatter {
         /**
          * The date format to use for logging.
          */
-        private static final String DATE_FORMAT = "YYYY-MM-dd HH:mm:ss";
+        private static final String DATE_FORMAT = "YYYY-MM-dd HH:mm:ss z";
 
         @Override
         public String format(LogRecord record) {
-            Object[] arguments = new Object[4];
-            
-            arguments[0] = new UTCDateFormat(DATE_FORMAT).format(new Date(record.getMillis()));
-            arguments[1] = record.getLevel();
-            arguments[2] = new MessageFormat(record.getMessage()).format(record.getParameters());
-
-            MessageFormat format = MESSAGE_FORMAT;
-            
-            if (context != null) {
-                format = CONTEXT_FORMAT;
-                arguments[3] = context.getHost();
-            } 
-            
-            return format.format(arguments);
+            return ContextFormatter.this.format(DATE_FORMAT, record);
         }
     }
 }
