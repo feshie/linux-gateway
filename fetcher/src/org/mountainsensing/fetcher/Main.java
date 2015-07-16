@@ -1,6 +1,6 @@
 package org.mountainsensing.fetcher;
 
-import org.mountainsensing.fetcher.utils.LogFormatter;
+import org.mountainsensing.fetcher.utils.ContextFormatter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import java.io.IOException;
@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
+import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,28 +81,28 @@ public class Main {
     /**
      * The log formatter to use to provide context information.
      */
-    private static LogFormatter logFormatter;
+    private static ContextFormatter logFormatter;
 
     public static void main(String[] args) {
-        setupLogging();
-
-        log.log(Level.FINE, "Version {0}", getVersion());
-
-        if (!isOnlyInstance()) {
-            log.log(Level.SEVERE, "Another instance is already running.");
-            System.exit(EXIT_FAILURE);
-        }
-        
         Options options = new Options();
         Operation operation = null;
-        
+
         try {
             operation = operations.get(parseArgs(args, options));
         } catch (ParameterException e) {
             System.err.println(e.getMessage() + ". See --help.");
             System.exit(EXIT_FAILURE);
         }
-        
+
+        setupLogging(options);
+
+        if (!isOnlyInstance()) {
+            log.log(Level.SEVERE, "Another instance is already running.");
+            System.exit(EXIT_FAILURE);
+        }
+
+        log.log(Level.FINE, "Version {0}", getVersion());
+
         // Don't save / read from the Californium.properties file
         NetworkConfig config = NetworkConfig.createStandardWithoutFile();
         // Nedd to scale the timeout from seconds to ms
@@ -149,7 +150,7 @@ public class Main {
             logFormatter.clearContext();
         }
 
-        log.log(Level.INFO, "Finished execution");
+        log.log(Level.FINE, "Finished execution");
     }
     
     /**
@@ -188,23 +189,38 @@ public class Main {
     /**
      * Setup the logger to use, and it's associated formatter.
      */
-    private static void setupLogging() {
+    private static void setupLogging(Options options) {
         Logger rootLogger = Logger.getLogger("");
-        rootLogger.setLevel(Level.INFO);
-        
+
         // Remove any existing handlers
         for (Handler handler : rootLogger.getHandlers()) {
             rootLogger.removeHandler(handler);
         }
 
+        Logger fetcherLogger = Logger.getLogger(Main.class.getPackage().getName());
+        logFormatter = new ContextFormatter();
+
+        // Enable all logging for everything
+        rootLogger.setLevel(Level.ALL);
+
+        // Console handler.
         ConsoleHandler console = new ConsoleHandler();
-        logFormatter = new LogFormatter();
-        console.setFormatter(logFormatter);
-        rootLogger.addHandler(console);
-        
-        // Supress some of the californium logging
-        Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
-        californiumLogger.setLevel(Level.WARNING);
+        console.setLevel(options.getConsoleLevel());
+        console.setFormatter(logFormatter.getConsoleFormatter());
+        fetcherLogger.addHandler(console);
+
+        // File logger.
+        if (options.hasLogFile()) {
+            try {
+                // Append to the log file if it's present
+                FileHandler file = new FileHandler(options.getLogFile(), true);
+                file.setLevel(options.getFileLevel());
+                file.setFormatter(logFormatter.getFileFormatter());
+                fetcherLogger.addHandler(file);
+            } catch (IOException | SecurityException e) {
+                log.log(Level.WARNING, "Unable to log to file: " + e.getMessage(), e);
+            }
+        }
     }
 
     /**
