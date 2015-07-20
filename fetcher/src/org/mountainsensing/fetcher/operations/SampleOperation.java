@@ -4,7 +4,6 @@ import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
-import com.google.protobuf.Descriptors.FieldDescriptor;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,7 +24,6 @@ import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.fetcher.utils.UTCDateFormat;
 import org.mountainsensing.pb.Readings.Sample;
 import org.mountainsensing.pb.Rs485Message.Rs485;
-import org.mountainsensing.pb.Settings;
 
 /**
  *
@@ -143,7 +141,7 @@ public abstract class SampleOperation extends Operation {
      * @return
      * @throws IOException 
      */
-    public Sample getSample(URI uri) throws IOException {
+    protected Sample getSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
         log.log(Level.FINE, "Attempting to get sample from: {0}", client.getURI());
 
@@ -155,7 +153,7 @@ public abstract class SampleOperation extends Operation {
         throw new CoapException(uri, Method.GET, response, "Unable to get sample");
     }
     
-    public void deleteSample(URI uri) throws IOException {
+    protected void deleteSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
         
         log.log(Level.FINE, "Attempting to delete sample from: {0}", client.getURI());
