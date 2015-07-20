@@ -70,9 +70,19 @@ public class ContextFormatter {
         if (context != null) {
             format = CONTEXT_FORMAT;
             arguments[3] = context.getHost();
-        } 
-        
-        return format.format(arguments);
+        }
+
+        String message = format.format(arguments);
+
+        // If the message is only one line, we're done
+        if (!message.contains(System.lineSeparator())) {
+            return message;
+        }
+
+        // Index of the split between the first line, and the rest of the lines
+        int split = message.indexOf(System.lineSeparator());
+        // Append the first line to the rest of the indented lines ((?m) treats a single string as multiline)
+        return message.substring(0, split) + message.substring(split).replaceAll("(?m)^", "\t");
     }
 
     /**
