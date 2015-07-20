@@ -3,7 +3,7 @@ package org.mountainsensing.fetcher.operations;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.google.protobuf.Descriptors.FieldDescriptor;
+import com.beust.jcommander.ParametersDelegate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,61 +25,36 @@ import org.mountainsensing.pb.Settings.SensorConfig;
 import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
 
 /**
- *
+ * Operation for getting / setting the config of a node.
  */
 public abstract class ConfigOperation extends Operation {
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
     
     public static final String RESSOURCE = "config";
-    
-    /**
-     *
-     */
-    @Parameters(commandDescription = "Get the configuration from the node(s)")
-    public static class Get extends ConfigOperation {
-
-        @Override
-        public void processNode(URI uri) throws CoapException, IOException {
-			CoapClient client = new CoapClient(uri);
-            
-            log.log(Level.FINE, "Attempting to get config from: {0}", client.getURI());
-            
-            CoapResponse response = client.get();
-            
-            if (response != null && response.isSuccess()) {
-                SensorConfig config = SensorConfig.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
-                log.log(Level.INFO, "Config is \n{0}", configToString(config));
-                return;
-            }
-
-            throw new CoapException(uri, Method.GET, response, "Failed to get config");
-        }
-    }
 
     /**
-     *
+     * Possible config settings.
+     * Used as a delegate for the force and update operations.
      */
-    @Parameters(commandDescription = "Set the configuration of the node(s)")
-    public static class Set extends ConfigOperation {
-
+    private static class Settings {
         @Parameter(names = {"-a1", "--adc1"}, description = "ADC1 should be enabled")
-        private boolean hasAdc1 = false;
+        private Boolean hasAdc1;
         
         @Parameter(names = {"-a2", "--adc2"}, description = "ADC1 should be enabled")
-        private boolean hasAdc2 = false;
+        private Boolean hasAdc2 ;
 
         @Parameter(names = {"-r", "--rain"}, description = "Rain sensor is connected to node(s)")
-        private boolean hasRain = false;
+        private Boolean hasRain;
 
         @Parameter(names = {"-i", "--interval"}, description = "Sampling interval in seconds")
-        private int interval = 1200;
+        private Integer interval;
 
         @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, description = "ID of AVR(s) connected to the node(s), in hex")
-        private List<Integer> avrs = new ArrayList<>();
+        private List<Integer> avrs;
 
         @Parameter(names = {"-m", "--routing-mode"}, converter = RoutingModeConverter.class, description = "Routing mode of the node(s).")
-        private RoutingMode routingMode = RoutingMode.MESH;
+        private RoutingMode routingMode;
 
         public static class HexConverter implements IStringConverter<Integer> {
             @Override
@@ -94,25 +69,88 @@ public abstract class ConfigOperation extends Operation {
                 return RoutingMode.valueOf(value);
             }
         }
+    }
+
+    /**
+     * Get operation. Prints out the configuration from the node(s).
+     */
+    @Parameters(commandDescription = "Get the configuration from the node(s)")
+    public static class Get extends ConfigOperation {
 
         @Override
         public void processNode(URI uri) throws CoapException, IOException {
-            SensorConfig config = SensorConfig.newBuilder().setInterval(interval).setHasADC1(hasAdc1).setHasADC2(hasAdc2).setHasRain(hasRain).addAllAvrIDs(avrs).setRoutingMode(routingMode).build();
-            
-			CoapClient client = new CoapClient(uri);
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            config.writeDelimitedTo(out);
-            
-            log.log(Level.FINE, "Attempting to post config to: {0}", client.getURI());
-            
-			CoapResponse response = client.post(out.toByteArray(), MediaTypeRegistry.APPLICATION_OCTET_STREAM);
-			if (response != null && response.isSuccess()) {
-                log.log(Level.INFO, "Config set to \n{0}", configToString(config));
-                return;
-            }
-            
-            throw new CoapException(uri, Method.POST, response, "Failed to post config");
+            log.log(Level.INFO, "Config is \n{0}", configToString(getConfig(uri)));
         }
+    }
+
+    /**
+     * Force operation. Entirely overwrites the configuration of the node(s), with sane(ish) defaults.
+     */
+    @Parameters(commandDescription = "Overwrite the configuration of the node(s)")
+    public static class Set extends ConfigOperation {
+
+        @ParametersDelegate
+        private Settings settings = new Settings();
+
+        public Set() {
+            // Set the defaults
+            settings.hasAdc1 = false;
+            settings.hasAdc2 = false;
+            settings.hasRain = false;
+            settings.interval = 1200;
+            settings.avrs = new ArrayList<>();
+            settings.routingMode = RoutingMode.MESH;
+        }
+
+        @Override
+        public void processNode(URI uri) throws CoapException, IOException {
+            SensorConfig config = SensorConfig.newBuilder().setInterval(settings.interval).setHasADC1(settings.hasAdc1).setHasADC2(settings.hasAdc2).setHasRain(settings.hasRain).addAllAvrIDs(settings.avrs).setRoutingMode(settings.routingMode).build();
+
+            setConfig(uri, config);
+
+            log.log(Level.INFO, "Config set to \n{0}", configToString(config));
+        }
+    }
+
+    /**
+     * Get the config from a URI.
+     * @param uri The URI to get the config from.
+     * @return The parsed config.
+     * @throws IOException If we fail to get the config, or parse it.
+     */
+    protected SensorConfig getConfig(URI uri) throws IOException {
+        CoapClient client = new CoapClient(uri);
+
+        log.log(Level.FINE, "Attempting to get config from: {0}", client.getURI());
+
+        CoapResponse response = client.get();
+
+        if (response != null && response.isSuccess()) {
+            return SensorConfig.parseDelimitedFrom(new ByteArrayInputStream(response.getPayload()));
+        }
+
+        throw new CoapException(uri, Method.GET, response, "Failed to get config");
+    }
+
+    /**
+     * Set the config on a URI.
+     * @param uri The URI to post the config to.
+     * @param config The config to post.
+     * @throws IOException If we fail to serialize the config, or post it.
+     */
+    protected void setConfig(URI uri, SensorConfig config) throws IOException {
+        CoapClient client = new CoapClient(uri);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        config.writeDelimitedTo(out);
+
+        log.log(Level.FINE, "Attempting to post config to: {0}", client.getURI());
+
+        CoapResponse response = client.post(out.toByteArray(), MediaTypeRegistry.APPLICATION_OCTET_STREAM);
+        if (response != null && response.isSuccess()) {
+            return;
+        }
+
+        throw new CoapException(uri, Method.POST, response, "Failed to post config");
     }
 
     @Override
