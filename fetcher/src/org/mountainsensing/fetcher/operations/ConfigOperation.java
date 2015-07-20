@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +19,8 @@ import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.Operation;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
+import org.mountainsensing.fetcher.utils.ProtoBufUtils;
+import org.mountainsensing.fetcher.utils.ProtoBufUtils.FieldOverride;
 import org.mountainsensing.pb.Settings.SensorConfig;
 import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
 
@@ -123,29 +126,19 @@ public abstract class ConfigOperation extends Operation {
      * @return A string representing the config, properly formatted.
      */
     private static String configToString(SensorConfig config) {
-        String result = new String();
-        for (FieldDescriptor descriptor : config.getAllFields().keySet()) {
-
-            result += descriptor.getName() + ": ";
-
-            // Field 4 is the AVR ID, we need to handle it sepcially to print hex.
-            // Index here is 0 indexed, so field 3.
-            if (descriptor.getIndex() == 3) {
-                result += "[";
+        // Override field 4 to print the AVRIDs as hex
+        return ProtoBufUtils.toString(config, Collections.singletonMap(4, new FieldOverride<SensorConfig>() {
+            @Override
+            public String toString(SensorConfig message) {
+                String output = "[";
                 String sep = "";
-                for (int avr : config.getAvrIDsList()) {
-                    result += sep + Integer.toHexString(avr);
+                for (int avr : message.getAvrIDsList()) {
+                    output += sep + Integer.toHexString(avr);
                     sep = ", ";
                 }
-                result += "]";
-
-            // Print all the rest normally
-            } else {
-                result += config.getAllFields().get(descriptor).toString();
+                output += "]";
+                return output;
             }
-
-            result += System.lineSeparator();
-        }
-        return result;
+        }));
     }
 }

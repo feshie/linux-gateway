@@ -11,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
@@ -20,9 +21,11 @@ import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
 import org.mountainsensing.fetcher.Operation;
+import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.fetcher.utils.UTCDateFormat;
 import org.mountainsensing.pb.Readings.Sample;
 import org.mountainsensing.pb.Rs485Message.Rs485;
+import org.mountainsensing.pb.Settings;
 
 /**
  *
@@ -196,26 +199,12 @@ public abstract class SampleOperation extends Operation {
      * @return A string representing the sample, properly formatted.
      */
     private static String sampleToString(Sample sample) {
-        String result = new String();
-        for (FieldDescriptor descriptor : sample.getAllFields().keySet()) {
-
-            result += descriptor.getName() + ": ";
-
-            // Field 1 is the sampling time, we need to handle it sepcially to print epoch + human readable time.
-            // Index here is 0 indexed, so field 0.
-            if (descriptor.getIndex() == 0) {
-                result += Long.toString(sample.getTime());
-                result += " aka ";
-                // Scale date from s to ms
-                result += new UTCDateFormat().format(new EpochDate(sample.getTime()));
-
-            // Print all the rest normally
-            } else {
-                result += sample.getAllFields().get(descriptor).toString();
+        // Field 1 is the sampling time, we need to handle it sepcially to print epoch + human readable time.
+        return ProtoBufUtils.toString(sample, Collections.singletonMap(1, new ProtoBufUtils.FieldOverride<Sample>() {
+            @Override
+            public String toString(Sample message) {
+                return Long.toString(message.getTime()) + " aka " + new UTCDateFormat().format(new EpochDate(message.getTime()));
             }
-
-            result += System.lineSeparator();
-        }
-        return result;
+        }));
     }
 }
