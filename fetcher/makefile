@@ -40,7 +40,7 @@ export SHELLOPTS:=errexit:pipefail
 .SUFFIXES:
 
 # Do not echo commands
-.SILENT:
+#.SILENT:
 
 # Disable builtin pattern rules
 MAKEFLAGS+=-r
@@ -114,6 +114,13 @@ VERSION_FILE_PREFIX:=$(OBJDIR).version_
 # as the manfiest can depend on this file, which is unique per version.
 VERSION_FILE:=$(VERSION_FILE_PREFIX)$(VERSION)
 
+# Verborsity settings. One to print commands, anything else to keep te build silent.
+ifeq ($(V),1)
+  Q:=
+else
+  Q:=@
+endif
+
 #############
 # Debug
 #############
@@ -130,57 +137,56 @@ VERSION_FILE:=$(VERSION_FILE_PREFIX)$(VERSION)
 
 # Compile all the source files using the generated list into build/jar/
 $(COMPILE): $(SOURCE_FILE) | $(JARDIR)$(DIRTAG)
-	echo "Compiling source files"
-	$(JAVAC) $(JAVAC_OPTS) -sourcepath $(subst $(SPACE),:,$(strip $(SRC))) -d $(JARDIR) -extdirs $(LIBRARY) @$<
-	touch $@
+	@echo "Compiling source files"
+	$Q$(JAVAC) $(JAVAC_OPTS) -sourcepath $(subst $(SPACE),:,$(strip $(SRC))) -d $(JARDIR) -extdirs $(LIBRARY) @$<
+	$Qtouch $@
 
 # Rule to generate a list of source files that can be used by javac
 $(SOURCE_FILE): $(SOURCE) | $(JARDIR)$(DIRTAG)
-	echo "Generating list of source files $(@F)"
-	echo $(SOURCE) > $@
+	@echo "Generating list of source files $(@F)"
+	@echo $(SOURCE) > $@
 
 # Rule to extract a JAR to the build directory
 # They are extracted to a temp directory, so the manifest can be removed without clashing with our own manifest
 $(OBJDIR).tag_%: $(LIBRARY)%.jar | $(JARDIR)$(DIRTAG)
-	echo "Extracting $(*F)"
-	mkdir $(OBJDIR)$(*F)
-	cd $(OBJDIR)$(*F); \
-	$(JAR) xf ../../$<
-	$(RM) -r $(OBJDIR)$(*F)/META-INF/
-	cp -r $(OBJDIR)$(*F)/* $(JARDIR)
-	$(RM) -r $(OBJDIR)$(*F)
-	touch $@
+	@echo "Extracting $(*F)"
+	$Qmkdir $(OBJDIR)$(*F)
+	$Qcd $(OBJDIR)$(*F); $(JAR) xf ../../$<
+	$Q$(RM) -r $(OBJDIR)$(*F)/META-INF/
+	$Qcp -r $(OBJDIR)$(*F)/* $(JARDIR)
+	$Q$(RM) -r $(OBJDIR)$(*F)
+	$Qtouch $@
 
 # Rule to build the jar manifest
 $(MANIFEST): $(VERSION_FILE) | $(MANIFESTDIR)$(DIRTAG)
-	echo "Creating manifest $(@F)"
-	echo "Manifest-Version: 1.0" > $@
-	echo "Class-Path: ." >> $@
-	echo "Sealed: true" >> $@
-	echo "Main-Class: $(MAIN)" >> $@
-	echo "Implementation-Version: $(VERSION)" >> $@
+	@echo "Creating manifest $(@F)"
+	@echo "Manifest-Version: 1.0" > $@
+	@echo "Class-Path: ." >> $@
+	@echo "Sealed: true" >> $@
+	@echo "Main-Class: $(MAIN)" >> $@
+	@echo "Implementation-Version: $(VERSION)" >> $@
 
 # Rule to create the version file. We only need to touch it to mark it up to date, and delete previous version files.
 $(VERSION_FILE): | $(OBJDIR)$(DIRTAG)
-	$(RM) $(VERSION_FILE_PREFIX)*
-	touch $@
+	$Q$(RM) $(VERSION_FILE_PREFIX)*
+	$Qtouch $@
 
 # Rule to build a jar
 $(OUTPUT_NAME): $(COMPILE) $(LIBS_TAG) $(MANIFEST)
-	echo "Building $(@F)"
-	$(JAR) $(JAR_OPTS) $(MANIFEST) $@ -C $(OBJDIR)jar/ . 
-	printf "\nBuild $(@F) completed successfully\n"
+	@echo "Building $(@F)"
+	$Q$(JAR) $(JAR_OPTS) $(MANIFEST) $@ -C $(OBJDIR)jar/ . 
+	$Qprintf "\nBuild $(@F) completed successfully\n"
 
 build: $(OUTPUT_NAME)
 
 # Tag to build a directory and it's tag
 %/$(DIRTAG):
-	$(MKDIR) $(@D)
-	touch $@
+	$Q$(MKDIR) $(@D)
+	$Qtouch $@
 
 # Clean target
 .PHONY:clean
 clean:
-	echo "Deleting all compiled files and removing build directory $(OBJDIR)"
-	$(RM) -r $(OBJDIR)
-	$(RM) $(OUTPUT_NAME)
+	@echo "Deleting all compiled files and removing build directory $(OBJDIR)"
+	$Q$(RM) -r $(OBJDIR)
+	$Q$(RM) $(OUTPUT_NAME)
