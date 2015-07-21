@@ -22,6 +22,7 @@ import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils.FieldOverride;
 import org.mountainsensing.pb.Settings.SensorConfig;
+import org.mountainsensing.pb.Settings.SensorConfig.Builder;
 import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
 
 /**
@@ -87,12 +88,12 @@ public abstract class ConfigOperation extends Operation {
      * Force operation. Entirely overwrites the configuration of the node(s), with sane(ish) defaults.
      */
     @Parameters(commandDescription = "Overwrite the configuration of the node(s)")
-    public static class Set extends ConfigOperation {
+    public static class Force extends ConfigOperation {
 
         @ParametersDelegate
         private Settings settings = new Settings();
 
-        public Set() {
+        public Force() {
             // Set the defaults
             settings.hasAdc1 = false;
             settings.hasAdc2 = false;
@@ -109,6 +110,35 @@ public abstract class ConfigOperation extends Operation {
             setConfig(uri, config);
 
             log.log(Level.INFO, "Config set to \n{0}", configToString(config));
+        }
+    }
+
+    /**
+     * Edit operation. Update / edit the configuration of the nodes.
+     */
+    @Parameters(commandDescription = "Update the configuration of the node(s)")
+    public static class Edit extends ConfigOperation {
+
+        @ParametersDelegate
+        private Settings settings = new Settings();
+
+        @Override
+        public void processNode(URI uri) throws CoapException, IOException {
+            SensorConfig oldConfig = getConfig(uri);
+
+            Builder editBuilder = SensorConfig.newBuilder();
+            //editBuilder.setInterval(settings.interval);
+            //editBuilder.setHasADC1(settings.hasAdc1);
+            //editBuilder.setHasADC2(settings.hasAdc2);
+            //editBuilder.setHasRain(settings.hasRain);
+            editBuilder.addAllAvrIDs(settings.avrs == null ? Collections.<Integer>emptyList() : settings.avrs);
+            //editBuilder.setRoutingMode(settings.routingMode).buildPartial();
+            
+            SensorConfig newConfig = oldConfig.toBuilder().mergeFrom(editBuilder.buildPartial()).build();
+            
+            setConfig(uri, newConfig);
+
+            log.log(Level.INFO, "Config set to \n{0}", configToString(newConfig));
         }
     }
 
