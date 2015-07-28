@@ -33,7 +33,8 @@ public class Main {
         operations.put("grab-sample", new SampleOperation.Grab());
                 
         operations.put("get-config", new ConfigOperation.Get());
-        operations.put("set-config", new ConfigOperation.Set());
+        operations.put("edit-config", new ConfigOperation.Edit());
+        operations.put("force-config", new ConfigOperation.Force());
         
         operations.put("get-date", new DateOperation.Get());
         operations.put("set-date", new DateOperation.Set());

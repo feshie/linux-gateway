@@ -22,6 +22,7 @@ import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils.FieldOverride;
 import org.mountainsensing.pb.Settings.SensorConfig;
+import org.mountainsensing.pb.Settings.SensorConfig.Builder;
 import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
 
 /**
@@ -38,13 +39,13 @@ public abstract class ConfigOperation extends Operation {
      * Used as a delegate for the force and update operations.
      */
     private static class Settings {
-        @Parameter(names = {"-a1", "--adc1"}, description = "ADC1 should be enabled")
+        @Parameter(names = {"-a1", "--adc1"}, arity = 1, description = "ADC1 should be enabled")
         private Boolean hasAdc1;
         
-        @Parameter(names = {"-a2", "--adc2"}, description = "ADC1 should be enabled")
+        @Parameter(names = {"-a2", "--adc2"}, arity = 1, description = "ADC1 should be enabled")
         private Boolean hasAdc2 ;
 
-        @Parameter(names = {"-r", "--rain"}, description = "Rain sensor is connected to node(s)")
+        @Parameter(names = {"-r", "--rain"}, arity = 1, description = "Rain sensor is connected to node(s)")
         private Boolean hasRain;
 
         @Parameter(names = {"-i", "--interval"}, description = "Sampling interval in seconds")
@@ -87,12 +88,12 @@ public abstract class ConfigOperation extends Operation {
      * Force operation. Entirely overwrites the configuration of the node(s), with sane(ish) defaults.
      */
     @Parameters(commandDescription = "Overwrite the configuration of the node(s)")
-    public static class Set extends ConfigOperation {
+    public static class Force extends ConfigOperation {
 
         @ParametersDelegate
         private Settings settings = new Settings();
 
-        public Set() {
+        public Force() {
             // Set the defaults
             settings.hasAdc1 = false;
             settings.hasAdc2 = false;
@@ -109,6 +110,35 @@ public abstract class ConfigOperation extends Operation {
             setConfig(uri, config);
 
             log.log(Level.INFO, "Config set to \n{0}", configToString(config));
+        }
+    }
+
+    /**
+     * Edit operation. Update / edit the configuration of the nodes.
+     */
+    @Parameters(commandDescription = "Update the configuration of the node(s)")
+    public static class Edit extends ConfigOperation {
+
+        @ParametersDelegate
+        private Settings settings = new Settings();
+
+        @Override
+        public void processNode(URI uri) throws CoapException, IOException {
+            SensorConfig oldConfig = getConfig(uri);
+            Builder editBuilder = SensorConfig.newBuilder();
+            
+            editBuilder.setInterval(settings.interval != null ? settings.interval : oldConfig.getInterval());
+            editBuilder.setHasADC1(settings.hasAdc1 != null ? settings.hasAdc1 : oldConfig.getHasADC1());
+            editBuilder.setHasADC2(settings.hasAdc2 != null ? settings.hasAdc2 : oldConfig.getHasADC2());
+            editBuilder.setHasRain(settings.hasRain != null ? settings.hasRain : oldConfig.getHasRain());
+            editBuilder.addAllAvrIDs(settings.avrs != null ? settings.avrs : oldConfig.getAvrIDsList());
+            editBuilder.setRoutingMode(settings.routingMode != null ? settings.routingMode : oldConfig.getRoutingMode());
+
+            SensorConfig newConfig = editBuilder.build();
+            
+            setConfig(uri, newConfig);
+
+            log.log(Level.INFO, "Config updated to \n{0}", configToString(newConfig));
         }
     }
 
