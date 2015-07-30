@@ -81,18 +81,18 @@ public class Main {
         try {
             operation = operations.get(parseArgs(args, options));
         } catch (ParameterException e) {
-            System.err.println(e.getMessage() + ". See --help.");
+            System.err.println(e.getMessage() + ". See --help");
             System.exit(EXIT_FAILURE);
         }
 
         setupLogging(options);
 
-        if (!isOnlyInstance()) {
-            log.log(Level.SEVERE, "Another instance is already running.");
-            System.exit(EXIT_FAILURE);
-        }
+        log.log(Level.FINE, "Starting. Version {0}", getVersion());
 
-        log.log(Level.FINE, "Version {0}", getVersion());
+        if (!isOnlyInstance()) {
+            log.log(Level.SEVERE, "Another instance is already running");
+            exit(false);
+        }
         
         Operation.setContextFormatter(logFormatter);
 
@@ -101,7 +101,16 @@ public class Main {
 
         operation.perform();
 
+        exit(true);
+    }
+
+    /**
+     * Exit the application.
+     * @param isSuccess True if the execution was successful, false otherwise.
+     */
+    private static void exit(boolean isSuccess) {
         log.log(Level.FINE, "Finished execution");
+        System.exit(isSuccess ? EXIT_SUCCESS : EXIT_FAILURE);
     }
     
     /**
