@@ -4,7 +4,7 @@ import java.text.FieldPosition;
 import java.util.Date;
 
 /**
- *
+ * Format that prints a Date with the associated UNIX epoch.
  */
 public class UTCEpochDateFormat extends UTCDateFormat {
 
@@ -12,9 +12,6 @@ public class UTCEpochDateFormat extends UTCDateFormat {
     
     @Override
     public StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition) {
-        //System.out.println("Date stuff");
-        //return toAppendTo.append(" Timethyings");
-        //return super.format(date, toAppendTo.append(new EpochDate(date.getTime()).getEpoch()).append(" aka "), fieldPosition);
-        return super.format(date, toAppendTo, fieldPosition);
+        return super.format(date, toAppendTo.append(new EpochDate(date).getEpoch()).append(" aka "), fieldPosition);
     }
 }

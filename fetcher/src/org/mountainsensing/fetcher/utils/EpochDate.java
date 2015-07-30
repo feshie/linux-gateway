@@ -31,6 +31,14 @@ public class EpochDate extends Date {
     public EpochDate(long epoch) {
         super(epochToMs(epoch));
     }
+
+    /**
+     * Create a new Date representing a given UNIX epoch.
+     * @param date The date to represent.
+     */
+    public EpochDate(Date date) {
+        super(date.getTime());
+    }
     
     /**
      * Get the UNIX epoch.

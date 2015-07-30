@@ -40,7 +40,7 @@ public abstract class DateOperation extends NodeOperation {
 
             if (response != null && response.isSuccess()) {
                 Date date = new EpochDate(Long.parseLong(response.getResponseText()));
-                log.log(Level.INFO, "Epoch is ", dateFormat.format(date));
+                log.log(Level.INFO, "Epoch is {0}", dateFormat.format(date));
                 return;
             }
 
