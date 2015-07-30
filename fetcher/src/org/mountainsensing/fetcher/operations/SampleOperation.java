@@ -135,6 +135,18 @@ public abstract class SampleOperation extends NodeOperation {
     }
 
     /**
+     * Decode operation. Decodes a sample.
+     */
+    @Parameters(commandDescription = "Decode a delimited protocol buffer encoded sample")
+    public static class Decode extends DecodeOperation {
+
+        @Override
+        protected void print(InputStream stream) throws IOException {
+            log.log(Level.INFO, "Decoded sample to \n{0}", sampleToString(Sample.parseDelimitedFrom(stream)));
+        }
+    }
+
+    /**
      * 
      * @param uri
      * @return

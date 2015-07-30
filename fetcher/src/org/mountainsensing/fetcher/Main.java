@@ -29,10 +29,12 @@ public class Main {
         operations.put("get-sample", new SampleOperation.Get());
         operations.put("del-sample", new SampleOperation.Delete());
         operations.put("grab-sample", new SampleOperation.Grab());
+        operations.put("decode-sample", new SampleOperation.Decode());
                 
         operations.put("get-config", new ConfigOperation.Get());
         operations.put("edit-config", new ConfigOperation.Edit());
         operations.put("force-config", new ConfigOperation.Force());
+        operations.put("decode-config", new ConfigOperation.Decode());
         
         operations.put("get-date", new DateOperation.Get());
         operations.put("set-date", new DateOperation.Set());

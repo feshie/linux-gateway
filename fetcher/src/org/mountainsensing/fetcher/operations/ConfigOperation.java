@@ -7,6 +7,7 @@ import com.beust.jcommander.ParametersDelegate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -138,6 +139,18 @@ public abstract class ConfigOperation extends NodeOperation {
             setConfig(uri, newConfig);
 
             log.log(Level.INFO, "Config updated to \n{0}", configToString(newConfig));
+        }
+    }
+
+    /**
+     * Decode operation. Decodes a config.
+     */
+    @Parameters(commandDescription = "Decode a delimited protocol buffer encoded configuration")
+    public static class Decode extends DecodeOperation {
+
+        @Override
+        protected void print(InputStream stream) throws IOException {
+            log.log(Level.INFO, "Decoded config to \n{0}", configToString(SensorConfig.parseDelimitedFrom(stream)));
         }
     }
 
