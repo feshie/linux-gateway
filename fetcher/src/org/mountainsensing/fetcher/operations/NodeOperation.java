@@ -1,4 +1,4 @@
-package org.mountainsensing.fetcher;
+package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameter;
 import java.io.IOException;
@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.network.config.NetworkConfig;
+import org.mountainsensing.fetcher.CoapException;
+import org.mountainsensing.fetcher.Operation;
 
 /**
  * Common class / interface for all operations.
@@ -48,12 +50,12 @@ public abstract class NodeOperation extends Operation {
     private List<String> nodes = new ArrayList<>();
     
     /**
-     * 
-     * @param prefix
-     * @param retries
-     * @param timeout
+     * Initialise the NodeOperations.
+     * @param prefix The IPv6 prefix/
+     * @param retries The amount of times to try before giving up.
+     * @param timeout The timeout in seconds.
      */
-    protected static void init(String prefix, int retries, int timeout) {
+    public static void init(String prefix, int retries, int timeout) {
         NodeOperation.prefix = prefix;
         NodeOperation.retries = retries;
 

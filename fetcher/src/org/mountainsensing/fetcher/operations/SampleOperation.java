@@ -19,7 +19,6 @@ import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
-import org.mountainsensing.fetcher.NodeOperation;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.fetcher.utils.UTCDateFormat;
 import org.mountainsensing.pb.Readings.Sample;

@@ -1,5 +1,6 @@
 package org.mountainsensing.fetcher;
 
+import org.mountainsensing.fetcher.operations.NodeOperation;
 import org.mountainsensing.fetcher.utils.ContextFormatter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;

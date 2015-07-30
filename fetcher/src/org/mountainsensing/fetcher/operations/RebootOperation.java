@@ -11,7 +11,6 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
-import org.mountainsensing.fetcher.NodeOperation;
 
 /**
  *
