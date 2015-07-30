@@ -1,6 +1,5 @@
 package org.mountainsensing.fetcher.utils;
 
-import java.net.URI;
 import java.text.MessageFormat;
 import java.util.Date;
 import java.util.logging.Formatter;
@@ -25,13 +24,13 @@ public class ContextFormatter {
      * The context information.
      * Can be null.
      */
-    private URI context;
+    private String context;
 
     /**
      * Set the context of any Console or File formatters.
      * @param context The context of further logs.
      */
-    public void setContext(URI context) {
+    public void setContext(String context) {
         this.context = context;        
     }
 
@@ -69,7 +68,7 @@ public class ContextFormatter {
         
         if (context != null) {
             format = CONTEXT_FORMAT;
-            arguments[3] = context.getHost();
+            arguments[3] = context;
         }
 
         String message = format.format(arguments);

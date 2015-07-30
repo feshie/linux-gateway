@@ -90,9 +90,11 @@ public class Main {
         }
 
         log.log(Level.FINE, "Version {0}", getVersion());
+        
+        Operation.setContextFormatter(logFormatter);
 
         // Sketchy hacky magic. Would be nice to get rid of it.
-        NodeOperation.init(options.getPrefix(), options.getRetries(), options.getTimeout(), logFormatter);
+        NodeOperation.init(options.getPrefix(), options.getRetries(), options.getTimeout());
 
         operation.perform();
 

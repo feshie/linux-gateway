@@ -9,14 +9,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.network.config.NetworkConfig;
-import org.mountainsensing.fetcher.utils.ContextFormatter;
 
 /**
  * Common class / interface for all operations.
  * An operation is something that can be done to a node, such as getting all it's samples or setting it's config.
  * Every operation becomes a separate command line command, and can declare it's own arguments.
  */
-public abstract class NodeOperation implements Operation {
+public abstract class NodeOperation extends Operation {
 
     private static final Logger log = Logger.getLogger(NodeOperation.class.getName());
 
@@ -30,12 +29,16 @@ public abstract class NodeOperation implements Operation {
      */
     private static final String PROTOCOL = "coap://";
 
+    /**
+     * The prefix to use for nodes.
+     */
     private static String prefix;
 
+    /**
+     * The amount of retries.
+     */
     private static int retries;
 
-    private static ContextFormatter context;
-    
     /**
      * The list of nodes to process.
      * These should be part of the Main options, but due to a bug in JCommander have to be decalared as arguments per Operation.
@@ -49,12 +52,10 @@ public abstract class NodeOperation implements Operation {
      * @param prefix
      * @param retries
      * @param timeout
-     * @param context 
      */
-    protected static void init(String prefix, int retries, int timeout, ContextFormatter context) {
+    protected static void init(String prefix, int retries, int timeout) {
         NodeOperation.prefix = prefix;
         NodeOperation.retries = retries;
-        NodeOperation.context = context;
 
         // Don't save / read from the Californium.properties file
         NetworkConfig config = NetworkConfig.createStandardWithoutFile();
@@ -70,8 +71,8 @@ public abstract class NodeOperation implements Operation {
     protected abstract String getRessource();
 
     /**
-     * Process a node represented by a URI.
-     * @param uri
+     * Process a node with this operation.
+     * @param uri The URI representing the node / URI.
      * @throws org.mountainsensing.fetcher.CoapException If a CoAP I/O error occurs.
      * @throws java.io.IOException If an I/O error occurs other than CoAP.
      */
@@ -85,17 +86,9 @@ public abstract class NodeOperation implements Operation {
         return false;
     }
 
-    /**
-     * 
-     * @return 
-     */
-    protected List<String> getNodes() {
-        return nodes;   
-    }
-
     @Override
     public void perform() {
-        for (String node : getNodes()) {
+        for (String node : nodes) {
             URI uri;
             try {
                 uri = new URI(PROTOCOL + "[" + prefix + node + "]" + "/" + getRessource() + "/");
@@ -104,7 +97,7 @@ public abstract class NodeOperation implements Operation {
                 continue;
             }
 
-            context.setContext(uri);
+            setContext(uri.getHost());
             
             int retryAttempt = 0;
             
@@ -132,7 +125,7 @@ public abstract class NodeOperation implements Operation {
             */
             } while ((retryAttempt != 0 && retryAttempt < retries) || (retryAttempt == 0 && shouldKeepProcessingNode()));
 
-            context.clearContext();
+            clearContext();
         }
     }
 }
