@@ -16,12 +16,12 @@ import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
-import org.mountainsensing.fetcher.Operation;
+import org.mountainsensing.fetcher.NodeOperation;
 
 /**
  *
  */
-public abstract class RouteOperation extends Operation {
+public abstract class RouteOperation extends NodeOperation {
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
 
     private static final String RESSOURCE = "routes";

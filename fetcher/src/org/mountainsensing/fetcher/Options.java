@@ -2,19 +2,12 @@ package org.mountainsensing.fetcher;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 
 /**
  *
  */
 public class Options {
-    /**
-     * Dummy parameter to make usage clearer. Real nodes parameter is in Operation.
-     */
-    @Parameter(descriptionKey = "nodes", description = "node(s)")
-    private List<String> nodes = new ArrayList<String>();
 
     @Parameter(names = {"-p", "--prefix"}, description = "/96 IPv6 prefix for the nodes")
     private String prefix = "aaaa::c30c:0:0:";

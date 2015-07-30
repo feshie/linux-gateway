@@ -14,13 +14,13 @@ import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
-import org.mountainsensing.fetcher.Operation;
+import org.mountainsensing.fetcher.NodeOperation;
 import org.mountainsensing.fetcher.utils.UTCDateFormat;
 
 /**
  *
  */
-public abstract class DateOperation extends Operation {
+public abstract class DateOperation extends NodeOperation {
     
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
     

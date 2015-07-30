@@ -11,12 +11,12 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
-import org.mountainsensing.fetcher.Operation;
+import org.mountainsensing.fetcher.NodeOperation;
 
 /**
  *
  */
-public abstract class RebootOperation extends Operation {
+public abstract class RebootOperation extends NodeOperation {
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
 

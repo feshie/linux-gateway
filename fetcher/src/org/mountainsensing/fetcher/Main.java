@@ -6,8 +6,6 @@ import com.beust.jcommander.ParameterException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
@@ -15,7 +13,6 @@ import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.mountainsensing.fetcher.operations.*;
 
 /**
@@ -47,16 +44,6 @@ public class Main {
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
     
-    /**
-     * Protocol to use for communication with nodes.
-     */
-    private static final String PROTOCOL = "coap://";
-
-    /**
-     * Californium key for the timeout property.
-     */
-    private static final String COAP_TIMEOUT_KEY = "ACK_TIMEOUT"; 
-
     /**
      * Exit code indicating success.
      */
@@ -104,52 +91,10 @@ public class Main {
 
         log.log(Level.FINE, "Version {0}", getVersion());
 
-        // Don't save / read from the Californium.properties file
-        NetworkConfig config = NetworkConfig.createStandardWithoutFile();
-        // Nedd to scale the timeout from seconds to ms
-        config.setInt(COAP_TIMEOUT_KEY, options.getTimeout() * 1000);
-        NetworkConfig.setStandard(config);
-        
-        // Actually do whatever we should do
-        for (String node : operation.getNodes()) {
-            URI uri;
-            try {
-                uri = new URI(PROTOCOL + "[" + options.getPrefix() + node + "]" + "/" + operation.getRessource() + "/");
-            } catch (URISyntaxException e) {
-                log.log(Level.WARNING, e.getMessage(), e);
-                continue;
-            }
+        // Sketchy hacky magic. Would be nice to get rid of it.
+        NodeOperation.init(options.getPrefix(), options.getRetries(), options.getTimeout(), logFormatter);
 
-            logFormatter.setContext(uri);
-            
-            int retryAttempt = 0;
-            
-            do {
-                try {
-                    operation.processNode(uri);
-                    // Reset the retry attempt on success
-                    retryAttempt = 0;
-                    continue;
-                } catch (IOException e) {
-                    log.log(Level.WARNING, e.getMessage(), e);
-                }
-                
-                retryAttempt++;
-                
-            /*
-                Keep going as long as either:
-                        retryAttempt != 0 -> the most recent operation didn't succed
-                    and
-                        retryAttempt < RETRIES -> we still have attempts to try again left
-                or
-                        retryAttempt == 0 -> the most recent operation did succeed
-                    and
-                        shouldKeepProcessingNode() -> that operation needs to process the node more
-            */
-            } while ((retryAttempt != 0 && retryAttempt < options.getRetries()) || (retryAttempt == 0 && operation.shouldKeepProcessingNode()));
-
-            logFormatter.clearContext();
-        }
+        operation.perform();
 
         log.log(Level.FINE, "Finished execution");
     }
