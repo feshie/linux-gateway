@@ -14,7 +14,7 @@ import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
-import org.mountainsensing.fetcher.utils.UTCDateFormat;
+import org.mountainsensing.fetcher.utils.UTCEpochDateFormat;
 
 /**
  *
@@ -25,7 +25,7 @@ public abstract class DateOperation extends NodeOperation {
     
     private static final String RESSOURCE = "date";
 
-    private static final DateFormat dateFormat = new UTCDateFormat();
+    private static final DateFormat dateFormat = new UTCEpochDateFormat();
     
     /**
      *
@@ -40,7 +40,7 @@ public abstract class DateOperation extends NodeOperation {
 
             if (response != null && response.isSuccess()) {
                 Date date = new EpochDate(Long.parseLong(response.getResponseText()));
-                log.log(Level.INFO, "Epoch is {0}, aka {1}", new Object[]{response.getResponseText(), dateFormat.format(date)});
+                log.log(Level.INFO, "Epoch is ", dateFormat.format(date));
                 return;
             }
 
@@ -68,7 +68,7 @@ public abstract class DateOperation extends NodeOperation {
             
             CoapResponse response = client.post(time, MediaTypeRegistry.TEXT_PLAIN);
             if (response != null && response.isSuccess()) {
-                log.log(Level.INFO, "Epoch set to {0}, aka {1}", new Object[]{time, dateFormat.format(date)});
+                log.log(Level.INFO, "Epoch set to {0}", dateFormat.format(date));
                 return;
             }
             

@@ -21,6 +21,7 @@ import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.fetcher.utils.UTCDateFormat;
+import org.mountainsensing.fetcher.utils.UTCEpochDateFormat;
 import org.mountainsensing.pb.Readings.Sample;
 import org.mountainsensing.pb.Rs485Message.Rs485;
 
@@ -212,7 +213,7 @@ public abstract class SampleOperation extends NodeOperation {
         return ProtoBufUtils.toString(sample, Collections.singletonMap(1, new ProtoBufUtils.FieldOverride<Sample>() {
             @Override
             public String toString(Sample message) {
-                return Long.toString(message.getTime()) + " aka " + new UTCDateFormat().format(new EpochDate(message.getTime()));
+                return new UTCEpochDateFormat().format(new EpochDate(message.getTime()));
             }
         }));
     }
