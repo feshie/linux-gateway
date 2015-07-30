@@ -18,7 +18,7 @@ public class ContextFormatter {
     /**
      * The message format to use when context information is set.
      */
-    private static final MessageFormat CONTEXT_FORMAT = new MessageFormat("{0} [{1}] {3}: {2}\n");
+    private static final MessageFormat CONTEXT_FORMAT = new MessageFormat("{0} [{1}] [{3}]: {2}\n");
 
     /**
      * The context information.

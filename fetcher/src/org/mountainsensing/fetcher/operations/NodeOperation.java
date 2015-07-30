@@ -91,6 +91,8 @@ public abstract class NodeOperation extends Operation {
     @Override
     public void perform() {
         for (String node : nodes) {
+            setContext(node);
+
             URI uri;
             try {
                 uri = new URI(PROTOCOL + "[" + prefix + node + "]" + "/" + getRessource() + "/");
@@ -99,8 +101,6 @@ public abstract class NodeOperation extends Operation {
                 continue;
             }
 
-            setContext(uri.getHost());
-            
             int retryAttempt = 0;
             
             do {
