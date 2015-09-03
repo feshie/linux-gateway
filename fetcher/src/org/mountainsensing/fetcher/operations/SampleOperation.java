@@ -10,7 +10,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Collections;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
@@ -19,6 +21,7 @@ import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
+import org.mountainsensing.fetcher.utils.FormatUtils;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.fetcher.utils.UTCEpochDateFormat;
 import org.mountainsensing.pb.Readings.Sample;
@@ -30,6 +33,42 @@ import org.mountainsensing.pb.Rs485Message.Rs485;
 public abstract class SampleOperation extends NodeOperation {
     
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
+
+    /**
+     * Map used to override the printing of Samples.
+     * The key is the integer id of the field to override the printing for,
+     * mapping to a FieldOverride returning the String to use for that field.
+     */
+    private static final Map<Integer, ProtoBufUtils.FieldOverride<Sample>> sampleOverrideMap;
+    static {
+        sampleOverrideMap = new HashMap<>();
+        // Field 1 is the sampling time, we need to handle it sepcially to print epoch + human readable time.
+        sampleOverrideMap.put(1, new ProtoBufUtils.FieldOverride<Sample>() {
+            @Override
+            public String toString(Sample message) {
+                return new UTCEpochDateFormat().format(new EpochDate(message.getTime()));
+            }
+        });
+
+        // Field 10 is the embedded AVR message - handle it specially to actually decode it
+        sampleOverrideMap.put(10, new ProtoBufUtils.FieldOverride<Sample>() {
+            @Override
+            public String toString(Sample message) throws IOException {
+                StringBuilder avr = new StringBuilder();
+
+                // Print the byte string as hex
+                //Formatter formatter = new Formatter(avr);
+                //for (byte b : message.getAVR().toByteArray()) {
+                //    formatter.format("%02x", b);
+                //}
+                avr.append(System.lineSeparator());
+
+                // Append the logical representation of the message
+                avr.append(FormatUtils.indent(ProtoBufUtils.toString(Rs485.parseFrom(message.getAVR()))));
+                return avr.toString();
+            }
+        });
+    }
     
     /**
      * Canary value for the latest sample.
@@ -62,13 +101,6 @@ public abstract class SampleOperation extends NodeOperation {
         public void processSample(URI uri) throws IOException {
             Sample sample = getSample(uri);
             log.log(Level.INFO, "Got sample: \n{0}", sampleToString(sample));
-
-            if (sample.hasAVR()) {
-                try (InputStream rsin = new ByteArrayInputStream(sample.getAVR().toByteArray())) {
-                    Rs485 rs485 = Rs485.parseFrom(rsin);
-                    log.log(Level.INFO, "RS485: \n{0}", rs485);
-                }
-            }
         }
     }
 
@@ -208,12 +240,6 @@ public abstract class SampleOperation extends NodeOperation {
      * @return A string representing the sample, properly formatted.
      */
     private static String sampleToString(Sample sample) throws IOException {
-        // Field 1 is the sampling time, we need to handle it sepcially to print epoch + human readable time.
-        return ProtoBufUtils.toString(sample, Collections.singletonMap(1, new ProtoBufUtils.FieldOverride<Sample>() {
-            @Override
-            public String toString(Sample message) {
-                return new UTCEpochDateFormat().format(new EpochDate(message.getTime()));
-            }
-        }));
+        return ProtoBufUtils.toString(sample, sampleOverrideMap);
     }
 }
