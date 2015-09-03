@@ -3,6 +3,7 @@ package org.mountainsensing.fetcher.utils;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.GeneratedMessage;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -48,22 +49,56 @@ public class ProtoBufUtils {
      * @throws java.io.IOException If the message could not be decoded properly.
      */
     public static <M extends GeneratedMessage> String toString(M message, Map<Integer, ? extends FieldOverride<M>> overrides) throws IOException {
-        String result = new String();
+        StringBuilder result = new StringBuilder();
         String separator = "";
         for (Descriptors.FieldDescriptor descriptor : message.getAllFields().keySet()) {
 
-            result += separator + descriptor.getName() + ": ";
-            
+            result.append(separator);
             separator = System.lineSeparator();
 
-            // The java protobuf implementation seems to be 0 indexed, instead of 1 indexed as per the proto defintions.
-            if (overrides != null && overrides.containsKey(descriptor.getIndex() + 1)) {
-                result += overrides.get(descriptor.getIndex() + 1).toString(message);
+            // If the field is repeated, print all them at once
+            if (descriptor.isRepeated()) {
+                String sep2 = "";
+                for (Object field : (Collection)message.getAllFields().get(descriptor)) {
+                    result.append(sep2);
+                    sep2 = System.lineSeparator();
+                    printField(message, descriptor, field, overrides, result);
+                };
+
+            // Else just print it
             } else {
-                result += message.getAllFields().get(descriptor).toString();
+                printField(message, descriptor, message.getAllFields().get(descriptor), overrides, result);
             }
         }
 
-        return result;
+        return result.toString();
+    }
+
+    /**
+     * Print a single field to a StringBuilder
+     * @param <M> The type of the ProtocolBuffer containing the field.
+     * @param message The ProtocolBuffer containing the field.
+     * @param descriptor The descriptor for the Field
+     * @param field The actual field to print
+     * @param overrides Any overrides for printing fields
+     * @param toAppend The StringBuilder to append to
+     * @throws IOException If the field is a protocol buffer, and toString() throws one.
+     */
+    private static <M extends GeneratedMessage> void printField(M message, Descriptors.FieldDescriptor descriptor, Object field, Map<Integer, ? extends FieldOverride<M>> overrides, StringBuilder toAppend) throws IOException {
+        toAppend.append(descriptor.getName()).append(": ");
+
+        // If there's an override for this field, use that
+        // The java protobuf implementation seems to be 0 indexed, instead of 1 indexed as per the proto defintions.
+        if (overrides != null && overrides.containsKey(descriptor.getIndex() + 1)) {
+            toAppend.append(overrides.get(descriptor.getIndex() + 1).toString(message));
+
+        // If this field is a protobuf, print it ourselves
+        } else if (field instanceof GeneratedMessage) {
+            toAppend.append(System.lineSeparator()).append(FormatUtils.indent(ProtoBufUtils.toString((GeneratedMessage) field)));
+
+        // Just a simple field, call toString() on it
+        } else {
+            toAppend.append(field.toString());
+        }
     }
 }
