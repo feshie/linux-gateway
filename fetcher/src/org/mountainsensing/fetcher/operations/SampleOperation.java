@@ -20,7 +20,6 @@ import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.EpochDate;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
-import org.mountainsensing.fetcher.utils.UTCDateFormat;
 import org.mountainsensing.fetcher.utils.UTCEpochDateFormat;
 import org.mountainsensing.pb.Readings.Sample;
 import org.mountainsensing.pb.Rs485Message.Rs485;
@@ -208,7 +207,7 @@ public abstract class SampleOperation extends NodeOperation {
      * @param config The sample
      * @return A string representing the sample, properly formatted.
      */
-    private static String sampleToString(Sample sample) {
+    private static String sampleToString(Sample sample) throws IOException {
         // Field 1 is the sampling time, we need to handle it sepcially to print epoch + human readable time.
         return ProtoBufUtils.toString(sample, Collections.singletonMap(1, new ProtoBufUtils.FieldOverride<Sample>() {
             @Override

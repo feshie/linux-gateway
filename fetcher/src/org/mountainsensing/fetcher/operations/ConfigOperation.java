@@ -205,7 +205,7 @@ public abstract class ConfigOperation extends NodeOperation {
      * @param config The configuration
      * @return A string representing the config, properly formatted.
      */
-    private static String configToString(SensorConfig config) {
+    private static String configToString(SensorConfig config) throws IOException {
         // Override field 4 to print the AVRIDs as hex
         return ProtoBufUtils.toString(config, Collections.singletonMap(4, new FieldOverride<SensorConfig>() {
             @Override

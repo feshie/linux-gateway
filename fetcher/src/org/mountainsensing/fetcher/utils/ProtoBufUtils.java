@@ -2,6 +2,7 @@ package org.mountainsensing.fetcher.utils;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.GeneratedMessage;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -15,7 +16,14 @@ public class ProtoBufUtils {
      * @param <M> The type of the message to which the field belongs.
      */
     public static abstract class FieldOverride<M> {
-        public abstract String toString(M message);
+
+        /**
+         * Get a string representation of a field.
+         * @param message The message being decoded
+         * @return A string representation of the associated field.
+         * @throws IOException If the field could not be properly decoded.
+         */
+        public abstract String toString(M message) throws IOException;
     }
     
     /**
@@ -23,8 +31,9 @@ public class ProtoBufUtils {
      * @param <M> The type of the Protocol Buffer
      * @param message The message
      * @return A String representing the message.
+     * @throws java.io.IOException If the message could not be decoded properly.
      */
-    public static <M extends GeneratedMessage> String toString(M message) {
+    public static <M extends GeneratedMessage> String toString(M message) throws IOException {
         return toString(message, null);
     }
 
@@ -36,8 +45,9 @@ public class ProtoBufUtils {
      * @param message The message
      * @param overrides A map of 1 indexed indexes to FieldOverrides.
      * @return A String representing the message.
+     * @throws java.io.IOException If the message could not be decoded properly.
      */
-    public static <M extends GeneratedMessage> String toString(M message, Map<Integer, ? extends FieldOverride<M>> overrides) {
+    public static <M extends GeneratedMessage> String toString(M message, Map<Integer, ? extends FieldOverride<M>> overrides) throws IOException {
         String result = new String();
         String separator = "";
         for (Descriptors.FieldDescriptor descriptor : message.getAllFields().keySet()) {
