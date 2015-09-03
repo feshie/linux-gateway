@@ -39,8 +39,8 @@ public abstract class DateOperation extends NodeOperation {
             CoapResponse response = client.get();
 
             if (response != null && response.isSuccess()) {
-                Date date = new EpochDate(Long.parseLong(response.getResponseText()));
-                log.log(Level.INFO, "Epoch is {0}", dateFormat.format(date));
+                EpochDate date = new EpochDate(Long.parseLong(response.getResponseText()));
+                log.log(Level.INFO, "Epoch is {0} Drift: {1,number,+#;-#}s", new Object[] {dateFormat.format(date), date.getEpoch() - new EpochDate().getEpoch()});
                 return;
             }
 

@@ -12,6 +12,6 @@ public class UTCEpochDateFormat extends UTCDateFormat {
     
     @Override
     public StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition) {
-        return super.format(date, toAppendTo.append(new EpochDate(date).getEpoch()).append(" aka "), fieldPosition);
+        return super.format(date, toAppendTo.append(new EpochDate(date).getEpoch()).append(" ("), fieldPosition).append(")");
     }
 }
