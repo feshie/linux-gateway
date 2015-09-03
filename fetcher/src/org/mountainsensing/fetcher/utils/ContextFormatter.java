@@ -80,8 +80,8 @@ public class ContextFormatter {
 
         // Index of the split between the first line, and the rest of the lines
         int split = message.indexOf(System.lineSeparator());
-        // Append the first line to the rest of the indented lines ((?m) treats a single string as multiline)
-        return message.substring(0, split) + message.substring(split).replaceAll("(?m)^", "\t");
+        // Append the first line to the rest of the indented lines
+        return message.substring(0, split) + FormatUtils.indent(message.substring(split));
     }
 
     /**
