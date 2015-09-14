@@ -7,7 +7,7 @@ import com.beust.jcommander.ParameterException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -23,12 +23,13 @@ public class Main {
     
     /**
      * Map of all the command names to their associated operation.
+     * Ordered to give a sensible output when using --help.
      */
-    private static final Map<String, Operation> operations = new HashMap<>();
+    private static final Map<String, Operation> operations = new LinkedHashMap<>();
     static {
         operations.put("get-sample", new SampleOperation.Get());
-        operations.put("del-sample", new SampleOperation.Delete());
         operations.put("grab-sample", new SampleOperation.Grab());
+        operations.put("del-sample", new SampleOperation.Delete());
         operations.put("decode-sample", new SampleOperation.Decode());
                 
         operations.put("get-config", new ConfigOperation.Get());
@@ -43,6 +44,8 @@ public class Main {
         operations.put("force-reboot", new RebootOperation.Force());
 
         operations.put("get-routes", new RouteOperation.Get());
+
+        operations.put("ping", new PingOperation.Ping());
     }
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
