@@ -53,20 +53,25 @@ public abstract class DecodeOperation extends Operation {
             } else {
                 inputs.put(System.in, STDIN_NAME);
             }
+        } catch (IOException e) {
+            log.log(Level.WARNING, e.getMessage(), e);
+        }
 
-            for (InputStream in : inputs.keySet()) {
+        for (InputStream in : inputs.keySet()) {
+
+            setContext(inputs.get(in));
+
+            try {
                 if (isDump) {
                     decodeDump(in, inputs.get(in));
 
                 // Otherwise binary
                 } else {
-                    setContext(inputs.get(in));
                     decodeBinary(in);
                 }
+            } catch (IOException e) {
+                log.log(Level.WARNING, e.getMessage(), e);
             }
-
-        } catch (IOException e) {
-            log.log(Level.WARNING, e.getMessage(), e);
         }
 
         clearContext();
@@ -114,7 +119,11 @@ public abstract class DecodeOperation extends Operation {
                 continue;
             }
 
-            decode(DatatypeConverter.parseHexBinary(line), nodeId);
+            try {
+                decode(DatatypeConverter.parseHexBinary(line), nodeId);
+            } catch (IOException | IllegalArgumentException e) {
+                log.log(Level.WARNING, e.getMessage(), e);
+            }
         }
     }
 
