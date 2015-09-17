@@ -146,14 +146,9 @@ public abstract class SampleOperation extends NodeOperation {
             }
 
             log.log(Level.INFO, "Got sample with id {0}", sample.getId());
-            
+
             // Substring strips the aquare backets from around the IPv6 address
-            File file = new File(dir + System.currentTimeMillis() + "_" + uri.getHost().substring(1, uri.getHost().length() - 1));
-            try (FileOutputStream fileStream = new FileOutputStream(file)) {
-                sample.writeDelimitedTo(fileStream);
-                fileStream.flush();
-                log.log(Level.INFO, "Saved sample to file {0}", file);
-            }
+            saveSample(dir, uri.getHost().substring(1, uri.getHost().length() - 1), sample);
             
             deleteSample(getURI(uri, sample.getId()));
             log.log(Level.INFO, "Sample {0} deleted from node", sample.getId());
@@ -172,9 +167,31 @@ public abstract class SampleOperation extends NodeOperation {
     @Parameters(commandDescription = "Decode a delimited protocol buffer encoded sample")
     public static class Decode extends DecodeOperation {
 
+        private static final String SAMPLE_START = "+++SERIALDUMP+++SAMPLE+++START+++";
+        private static final String SAMPLE_END = "+++SERIALDUMP+++SAMPLE+++END+++";
+
+        @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples")
+        private String dir;
+
         @Override
-        protected void print(InputStream stream) throws IOException {
-            log.log(Level.INFO, "Decoded sample to \n{0}", sampleToString(Sample.parseDelimitedFrom(stream)));
+        protected void decode(byte[] data) throws IOException {
+            Sample sample = Sample.parseDelimitedFrom(new ByteArrayInputStream(data));
+
+            if (dir == null) {
+                log.log(Level.INFO, "Decoded sample to \n{0}", sampleToString(sample));
+            } else {
+                saveSample(dir, "DUMP", sample);
+            }
+        }
+
+        @Override
+        protected String startMarker() {
+            return SAMPLE_START;
+        }
+
+        @Override
+        protected String endMarker() {
+            return SAMPLE_END;
         }
     }
 
@@ -184,7 +201,7 @@ public abstract class SampleOperation extends NodeOperation {
      * @return
      * @throws IOException 
      */
-    protected Sample getSample(URI uri) throws IOException {
+    protected static Sample getSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
         log.log(Level.FINE, "Attempting to get sample from: {0}", client.getURI());
 
@@ -196,7 +213,7 @@ public abstract class SampleOperation extends NodeOperation {
         throw new CoapException(uri, Method.GET, response, "Unable to get sample");
     }
     
-    protected void deleteSample(URI uri) throws IOException {
+    protected static void deleteSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
         
         log.log(Level.FINE, "Attempting to delete sample from: {0}", client.getURI());
@@ -207,6 +224,23 @@ public abstract class SampleOperation extends NodeOperation {
         }
 
         throw new CoapException(uri, Method.DELETE, response, "Failed to delete Sample");
+    }
+
+    /**
+     * Save a sample as a protocol buffer
+     * @param dir The directory to create the file in.
+     * @param suffix A suffix to append to the filename.
+     * @param sample The sample to save.
+     * @throws IOException If an error occurs encoding the sample, or writing to the file.
+     */
+    protected static void saveSample(String dir, String suffix, Sample sample) throws IOException {
+        File file = new File(dir + System.currentTimeMillis() + "_" + suffix);
+
+        try (FileOutputStream fileStream = new FileOutputStream(file)) {
+            sample.writeDelimitedTo(fileStream);
+            fileStream.flush();
+            log.log(Level.INFO, "Saved sample to file {0}", file);
+        }
     }
 
     @Override

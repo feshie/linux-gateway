@@ -148,9 +148,22 @@ public abstract class ConfigOperation extends NodeOperation {
     @Parameters(commandDescription = "Decode a delimited protocol buffer encoded configuration")
     public static class Decode extends DecodeOperation {
 
+        private static final String CONFIG_START = "+++SERIALDUMP+++CONFIG+++START+++";
+        private static final String CONFIG_END = "+++SERIALDUMP+++CONFIG+++END+++";
+
         @Override
-        protected void print(InputStream stream) throws IOException {
-            log.log(Level.INFO, "Decoded config to \n{0}", configToString(SensorConfig.parseDelimitedFrom(stream)));
+        protected void decode(byte[] data) throws IOException {
+            log.log(Level.INFO, "Decoded config to \n{0}", configToString(SensorConfig.parseDelimitedFrom(new ByteArrayInputStream(data))));
+        }
+
+        @Override
+        protected String startMarker() {
+            return CONFIG_START;
+        }
+
+        @Override
+        protected String endMarker() {
+            return CONFIG_END;
         }
     }
 
