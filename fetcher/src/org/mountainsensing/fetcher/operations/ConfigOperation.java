@@ -152,7 +152,7 @@ public abstract class ConfigOperation extends NodeOperation {
         private static final String CONFIG_END = "+++SERIALDUMP+++CONFIG+++END+++";
 
         @Override
-        protected void decode(byte[] data) throws IOException {
+        protected void decode(byte[] data, String nodeId) throws IOException {
             log.log(Level.INFO, "Decoded config to \n{0}", configToString(SensorConfig.parseDelimitedFrom(new ByteArrayInputStream(data))));
         }
 

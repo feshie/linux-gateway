@@ -170,17 +170,18 @@ public abstract class SampleOperation extends NodeOperation {
         private static final String SAMPLE_START = "+++SERIALDUMP+++SAMPLE+++START+++";
         private static final String SAMPLE_END = "+++SERIALDUMP+++SAMPLE+++END+++";
 
-        @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples")
+        @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples. Only supported with '--is-serial-dumpi'")
         private String dir;
 
         @Override
-        protected void decode(byte[] data) throws IOException {
+        protected void decode(byte[] data, String nodeId) throws IOException {
             Sample sample = Sample.parseDelimitedFrom(new ByteArrayInputStream(data));
 
             if (dir == null) {
                 log.log(Level.INFO, "Decoded sample to \n{0}", sampleToString(sample));
             } else {
-                saveSample(dir, "DUMP", sample);
+                // Need to make the node id into a dummy ipv6 address
+                saveSample(dir, "dead:beef::" + nodeId, sample);
             }
         }
 

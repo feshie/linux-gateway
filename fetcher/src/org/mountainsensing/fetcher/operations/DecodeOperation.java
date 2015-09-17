@@ -25,6 +25,8 @@ public abstract class DecodeOperation extends Operation {
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
 
+    private static final String NODEID = "+++SERIALDUMP+++NODEID+++";
+
     /**
      * Context to use for stdin.
      */
@@ -80,6 +82,7 @@ public abstract class DecodeOperation extends Operation {
         boolean shouldDecode = false;
         LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
         String line;
+        String nodeId = null;
 
         while ((line = reader.readLine()) != null) {
 
@@ -89,7 +92,15 @@ public abstract class DecodeOperation extends Operation {
                 continue;
             }
 
+            if (line.equals(NODEID)) {
+                nodeId = reader.readLine();
+            }
+
             if (line.equals(startMarker())) {
+                if (nodeId == null) {
+                    throw new IOException("Input " + name + " does not have a NODEID!");
+                }
+
                 shouldDecode = true;
                 continue;
             }
@@ -103,7 +114,7 @@ public abstract class DecodeOperation extends Operation {
                 continue;
             }
 
-            decode(DatatypeConverter.parseHexBinary(line));
+            decode(DatatypeConverter.parseHexBinary(line), nodeId);
         }
     }
 
@@ -121,7 +132,7 @@ public abstract class DecodeOperation extends Operation {
             binary.write(buffer, 0, bytesRead);
         }
 
-        decode(binary.toByteArray());
+        decode(binary.toByteArray(), null);
     }
 
     /**
@@ -139,7 +150,8 @@ public abstract class DecodeOperation extends Operation {
     /**
      * Decode and print the encoded data.
      * @param data The encoded data.
+     * @param nodeId The ID of the node (ie last 2 bytes of it's IPv6 address). May be null if the id is unknown.
      * @throws IOException An any I/O errors.
      */
-    protected abstract void decode(byte[] data) throws IOException;
+    protected abstract void decode(byte[] data, String nodeId) throws IOException;
 }
