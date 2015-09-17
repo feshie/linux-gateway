@@ -1,14 +1,16 @@
 package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameter;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.DatatypeConverter;
@@ -17,7 +19,7 @@ import org.mountainsensing.fetcher.Operation;
 /**
  * Abstract operation for decoding data.
  * This is typically used to decode protocol buffer encoded things and serial dumps.
- * Supports reading from stdin, or a file.
+ * Supports reading from stdin, or multiple files.
  */
 public abstract class DecodeOperation extends Operation {
 
@@ -26,7 +28,7 @@ public abstract class DecodeOperation extends Operation {
     /**
      * Context to use for stdin.
      */
-    private static final String STDIN_CONTEXT = "stdin";
+    private static final String STDIN_NAME = "stdin";
     
     @Parameter(description = "File(s) to read from. Reads from stdin if none specified.", required = false, arity = 1)
     private List<String> files = new ArrayList<>();
@@ -36,28 +38,31 @@ public abstract class DecodeOperation extends Operation {
 
     @Override
     public void perform() {
-        boolean fromFile = !files.isEmpty();
-        String file = files.get(0);
+        // Store humman readable names for the inputs - usefull for setting the context
+        Map<InputStream, String> inputs = new LinkedHashMap<>();
 
-        setContext(fromFile ? file : STDIN_CONTEXT);
-        
-        try {        
-            InputStream in;
+        try {
+            // If we have files use those, otherwise read from stdin
+            if (!files.isEmpty()) {
+                for (String file : files) {
+                    inputs.put(new FileInputStream(file), file);
+                }
 
-            if (fromFile) {
-                in = new FileInputStream(file);
             } else {
-                in = System.in;
+                inputs.put(System.in, STDIN_NAME);
             }
 
-            if (isDump) {
-                decodeDump(in);
+            for (InputStream in : inputs.keySet()) {
+                if (isDump) {
+                    decodeDump(in, inputs.get(in));
 
-            // Otherwise binary
-            } else {
-                decodeBinary(in);
+                // Otherwise binary
+                } else {
+                    setContext(inputs.get(in));
+                    decodeBinary(in);
+                }
             }
-            
+
         } catch (IOException e) {
             log.log(Level.WARNING, e.getMessage(), e);
         }
@@ -68,14 +73,17 @@ public abstract class DecodeOperation extends Operation {
     /**
      * Decode a serial dump.
      * @param in A stream to the serial dump.
+     * @param name A human readable name for the input stream.
      * @throws IOException If an error occurs.
      */
-    private void decodeDump(InputStream in) throws IOException {
+    private void decodeDump(InputStream in, String name) throws IOException {
         boolean shouldDecode = false;
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
         String line;
 
         while ((line = reader.readLine()) != null) {
+
+            setContext(name + ":" + reader.getLineNumber());
 
             if (line.isEmpty()) {
                 continue;
