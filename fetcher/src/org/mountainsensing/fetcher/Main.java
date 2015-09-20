@@ -87,7 +87,7 @@ public class Main {
         Operation operation = null;
 
         try {
-            operation = operations.get(parseArgs(args, options));
+            operation = parseArgs(args, options);
         } catch (ParameterException e) {
             System.err.println(e.getMessage() + ". See --help");
             System.exit(EXIT_FAILURE);
@@ -125,10 +125,10 @@ public class Main {
      * Parse an array of arguments into an options object.
      * @param args The arguments to parse.
      * @param options The parameters to use for parsing.
-     * @return The name of the command.
+     * @return The operation requested.
      * @throws ParameterException If there was an error parsing, such as a missing required parameter or command.
      */
-    private static String parseArgs(String[] args, Options options) throws ParameterException {
+    private static Operation parseArgs(String[] args, Options options) throws ParameterException {
         JCommander parser = new JCommander(options);
         parser.setProgramName(PROGRAM_NAME);
 
@@ -152,7 +152,14 @@ public class Main {
             throw new ParameterException("Command is required");
         }
 
-        return parser.getParsedCommand();
+        Operation operation = operations.get(parser.getParsedCommand());
+
+        if (operation.shouldShowHelp()) {
+            parser.usage(parser.getParsedCommand());
+            System.exit(EXIT_SUCCESS);
+        }
+
+        return operation;
     }
 
     /**

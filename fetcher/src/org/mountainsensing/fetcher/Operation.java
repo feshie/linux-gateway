@@ -1,5 +1,6 @@
 package org.mountainsensing.fetcher;
 
+import com.beust.jcommander.Parameter;
 import org.mountainsensing.fetcher.utils.ContextFormatter;
 
 /**
@@ -7,6 +8,10 @@ import org.mountainsensing.fetcher.utils.ContextFormatter;
  * and provide means of setting the logger context.
  */
 public abstract class Operation {
+
+    // Hidden to reduce clutter
+    @Parameter(names = {"-h", "--help"}, description = "Show usage help and exit", help = true, hidden = true)
+    private boolean help = false;
 
     /**
      * The formatter to use for setting the context.
@@ -34,6 +39,14 @@ public abstract class Operation {
      */
     protected void clearContext() {
         formatter.clearContext();
+    }
+
+    /**
+     * Check if usage help specific to this operation should be displayed.
+     * @return True if it should be, false otherwise.
+     */
+    protected boolean shouldShowHelp() {
+        return help;
     }
 
     /**
