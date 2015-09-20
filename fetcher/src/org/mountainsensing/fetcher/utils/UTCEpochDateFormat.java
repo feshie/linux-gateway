@@ -9,7 +9,7 @@ import java.util.Date;
 public class UTCEpochDateFormat extends UTCDateFormat {
 
     public static final long serialVersionUID = 1;
-    
+
     @Override
     public StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition) {
         return super.format(date, toAppendTo.append(new EpochDate(date).getEpoch()).append(" ("), fieldPosition).append(")");

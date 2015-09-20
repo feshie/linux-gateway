@@ -48,7 +48,7 @@ public abstract class NodeOperation extends Operation {
      */
     @Parameter(description = "node(s)", required = true)
     private List<String> nodes = new ArrayList<>();
-    
+
     /**
      * Initialise the NodeOperations.
      * @param prefix The IPv6 prefix/
@@ -82,7 +82,7 @@ public abstract class NodeOperation extends Operation {
 
     /**
      * Test if the node in the last call to processNode requires further processing.
-     * @return 
+     * @return
      */
     protected boolean shouldKeepProcessingNode() {
         return false;
@@ -102,7 +102,7 @@ public abstract class NodeOperation extends Operation {
             }
 
             int retryAttempt = 0;
-            
+
             do {
                 try {
                     processNode(uri);
@@ -112,9 +112,9 @@ public abstract class NodeOperation extends Operation {
                 } catch (IOException e) {
                     log.log(Level.WARNING, e.getMessage(), e);
                 }
-                
+
                 retryAttempt++;
-                
+
             /*
                 Keep going as long as either:
                         retryAttempt != 0 -> the most recent operation didn't succed

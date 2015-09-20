@@ -31,7 +31,7 @@ public class ContextFormatter {
      * @param context The context of further logs.
      */
     public void setContext(String context) {
-        this.context = context;        
+        this.context = context;
     }
 
     /**
@@ -59,13 +59,13 @@ public class ContextFormatter {
 
     protected String format(String dateFormat, LogRecord record) {
         Object[] arguments = new Object[5];
-        
+
         arguments[0] = new UTCDateFormat(dateFormat).format(new Date(record.getMillis()));
         arguments[1] = record.getLevel();
         arguments[2] = new MessageFormat(record.getMessage()).format(record.getParameters());
 
         MessageFormat format = MESSAGE_FORMAT;
-        
+
         if (context != null) {
             format = CONTEXT_FORMAT;
             arguments[3] = context;

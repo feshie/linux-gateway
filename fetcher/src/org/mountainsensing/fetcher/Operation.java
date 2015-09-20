@@ -42,5 +42,5 @@ public abstract class Operation {
      * a substantial amount of IO (ie be very long)
      */
     public abstract void perform();
-    
+
 }

@@ -31,7 +31,7 @@ public abstract class DecodeOperation extends Operation {
      * Context to use for stdin.
      */
     private static final String STDIN_NAME = "stdin";
-    
+
     @Parameter(description = "File(s) to read from. Reads from stdin if none specified.", required = false, arity = 1)
     private List<String> files = new ArrayList<>();
 
@@ -146,13 +146,13 @@ public abstract class DecodeOperation extends Operation {
 
     /**
      * The start marker used to delimit this field in a serial dump.
-     * @return 
+     * @return
      */
     protected abstract String startMarker();
 
     /**
      * The start marker used to delimit this field in a serial dump.
-     * @return 
+     * @return
      */
     protected abstract String endMarker();
 

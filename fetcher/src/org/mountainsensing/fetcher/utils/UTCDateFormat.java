@@ -9,17 +9,17 @@ import java.util.TimeZone;
 public class UTCDateFormat extends SimpleDateFormat {
 
     public static final long serialVersionUID = 1;
-    
+
     /**
      * Name / ID of the UTC TimeZone.
      */
     private static final String UTC = "UTC";
-    
+
     /**
      * The default date / time format to use.
      */
     private static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss z";
-    
+
     /**
      * Create a new UTCDateFormat with a default format,
      * and the timezone set to UTC.

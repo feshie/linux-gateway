@@ -20,7 +20,7 @@ import org.mountainsensing.fetcher.operations.*;
  *
  */
 public class Main {
-    
+
     /**
      * Map of all the command names to their associated operation.
      * Ordered to give a sensible output when using --help.
@@ -31,12 +31,12 @@ public class Main {
         operations.put("grab-sample", new SampleOperation.Grab());
         operations.put("del-sample", new SampleOperation.Delete());
         operations.put("decode-sample", new SampleOperation.Decode());
-                
+
         operations.put("get-config", new ConfigOperation.Get());
         operations.put("edit-config", new ConfigOperation.Edit());
         operations.put("force-config", new ConfigOperation.Force());
         operations.put("decode-config", new ConfigOperation.Decode());
-        
+
         operations.put("get-date", new DateOperation.Get());
         operations.put("set-date", new DateOperation.Set());
 
@@ -45,11 +45,11 @@ public class Main {
 
         operations.put("get-routes", new RouteOperation.Get());
 
-        operations.put("ping", new PingOperation.Ping());
+        operations.put("ping", new PingOperation());
     }
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
-    
+
     /**
      * Exit code indicating success.
      */
@@ -96,7 +96,7 @@ public class Main {
             log.log(Level.SEVERE, "Another instance is already running");
             exit(false);
         }
-        
+
         Operation.setContextFormatter(logFormatter);
 
         // Sketchy hacky magic. Would be nice to get rid of it.
@@ -115,7 +115,7 @@ public class Main {
         log.log(Level.FINE, "Finished execution");
         System.exit(isSuccess ? EXIT_SUCCESS : EXIT_FAILURE);
     }
-    
+
     /**
      * Parse an array of arguments into an options object.
      * @param args The arguments to parse.
@@ -125,11 +125,11 @@ public class Main {
      */
     private static String parseArgs(String[] args, Options options) throws ParameterException {
         JCommander parser = new JCommander(options);
-        
+
         for (String opName : operations.keySet()) {
             parser.addCommand(opName, operations.get(opName));
         }
-        
+
         parser.parse(args);
 
         if (options.shouldShowHelp()) {
@@ -141,14 +141,14 @@ public class Main {
             System.out.println(getVersion());
             System.exit(EXIT_SUCCESS);
         }
-        
+
         if (parser.getParsedCommand() == null) {
             throw new ParameterException("Command is required");
         }
 
         return parser.getParsedCommand();
     }
-    
+
     /**
      * Setup the logger to use, and it's associated formatter.
      */

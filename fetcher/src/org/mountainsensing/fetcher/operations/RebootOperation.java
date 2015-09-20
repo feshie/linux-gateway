@@ -6,14 +6,13 @@ import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
-import org.eclipse.californium.core.CoapHandler;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 
 /**
- *
+ * Operations for rebooting / getting reboot count from the nodes.
  */
 public abstract class RebootOperation extends NodeOperation {
 
@@ -22,7 +21,7 @@ public abstract class RebootOperation extends NodeOperation {
     static final String RESSOURCE = "reboot";
 
     /**
-     *
+     * Operation to reboot a node.
      */
     @Parameters(commandDescription = "Force the node(s) to reboot immediately. This is a blind operation, the node(s) are not able to confirm reception of the command.")
     public static class Force extends RebootOperation {
@@ -38,7 +37,7 @@ public abstract class RebootOperation extends NodeOperation {
     }
 
     /**
-     *
+     * Operation to get the reboot counter.
      */
     @Parameters(commandDescription = "Get the reboot count of the node(s)")
     public static class Get extends RebootOperation {

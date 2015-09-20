@@ -26,7 +26,7 @@ public class ProtoBufUtils {
          */
         public abstract String toString(M message) throws IOException;
     }
-    
+
     /**
      * Get a string representation of a protocol buffer message
      * @param <M> The type of the Protocol Buffer
@@ -40,7 +40,7 @@ public class ProtoBufUtils {
 
     /**
      * Get a string representation of a protocol buffer message.
-     * This method allows the output to be controlled through the use of FieldOverrides. The `toString()` method of a FieldOverride associated with 
+     * This method allows the output to be controlled through the use of FieldOverrides. The `toString()` method of a FieldOverride associated with
      * an index will be called to print the filed with that index, instead of just calling `toString()` on the field.
      * @param <M> The type of the Protocol Buffer
      * @param message The message

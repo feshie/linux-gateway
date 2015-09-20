@@ -7,7 +7,6 @@ import com.beust.jcommander.ParametersDelegate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +30,7 @@ import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
 public abstract class ConfigOperation extends NodeOperation {
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
-    
+
     public static final String RESSOURCE = "config";
 
     /**
@@ -41,7 +40,7 @@ public abstract class ConfigOperation extends NodeOperation {
     private static class Settings {
         @Parameter(names = {"-a1", "--adc1"}, arity = 1, description = "ADC1 should be enabled")
         private Boolean hasAdc1;
-        
+
         @Parameter(names = {"-a2", "--adc2"}, arity = 1, description = "ADC1 should be enabled")
         private Boolean hasAdc2 ;
 
@@ -126,7 +125,7 @@ public abstract class ConfigOperation extends NodeOperation {
         public void processNode(URI uri) throws CoapException, IOException {
             SensorConfig oldConfig = getConfig(uri);
             Builder editBuilder = SensorConfig.newBuilder();
-            
+
             editBuilder.setInterval(settings.interval != null ? settings.interval : oldConfig.getInterval());
             editBuilder.setHasADC1(settings.hasAdc1 != null ? settings.hasAdc1 : oldConfig.getHasADC1());
             editBuilder.setHasADC2(settings.hasAdc2 != null ? settings.hasAdc2 : oldConfig.getHasADC2());
@@ -135,7 +134,7 @@ public abstract class ConfigOperation extends NodeOperation {
             editBuilder.setRoutingMode(settings.routingMode != null ? settings.routingMode : oldConfig.getRoutingMode());
 
             SensorConfig newConfig = editBuilder.build();
-            
+
             setConfig(uri, newConfig);
 
             log.log(Level.INFO, "Config updated to \n{0}", configToString(newConfig));

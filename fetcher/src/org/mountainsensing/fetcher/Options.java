@@ -5,7 +5,7 @@ import com.beust.jcommander.Parameter;
 import java.util.logging.Level;
 
 /**
- *
+ * Main options parsed from the command line.
  */
 public class Options {
 
@@ -63,7 +63,7 @@ public class Options {
     public int getRetries() {
         return retries;
     }
-    
+
     /**
      * Check if help output should be shown.
      * @return True if help should be shown, false otherwise.

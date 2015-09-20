@@ -37,7 +37,7 @@ public class CoapException extends IOException {
     private final Method method;
 
     /**
-     * Create a new OperationException. 
+     * Create a new OperationException.
      * @param uri The URI on which an error occurred.
      * @param method The method used on the URI.
      * @param response The CoAP response received. NULL if no response was received.
@@ -45,9 +45,9 @@ public class CoapException extends IOException {
     public CoapException(URI uri, Method method, CoapResponse response) {
         this(uri, method, response, null, null);
     }
-    
+
     /**
-     * Create a new OperationException. 
+     * Create a new OperationException.
      * @param uri The URI on which an error occurred.
      * @param method The method used on the URI.
      * @param response The CoAP response received. NULL if no response was received.
@@ -58,7 +58,7 @@ public class CoapException extends IOException {
     }
 
     /**
-     * Create a new OperationException. 
+     * Create a new OperationException.
      * @param uri The URI on which an error occurred.
      * @param method The method used on the URI.
      * @param response The CoAP response received. NULL if no response was received.
@@ -67,9 +67,9 @@ public class CoapException extends IOException {
     public CoapException(URI uri, Method method, CoapResponse response, Exception cause) {
         this(uri, method, response, null, cause);
     }
-    
+
     /**
-     * Create a new OperationException. 
+     * Create a new OperationException.
      * @param uri The URI on which an error occurred.
      * @param method The method used on the URI.
      * @param response The CoAP response received. NULL if no response was received.
@@ -81,14 +81,14 @@ public class CoapException extends IOException {
         this.uri = uri;
         this.method = method;
         this.response = response;
-    }               
+    }
 
     /**
      * Get the URI.
      * @return The URI on which an error occurred.
      */
     public URI getURI() {
-        return uri;   
+        return uri;
     }
 
     /**

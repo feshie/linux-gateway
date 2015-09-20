@@ -8,9 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -28,10 +26,10 @@ import org.mountainsensing.pb.Readings.Sample;
 import org.mountainsensing.pb.Rs485Message.Rs485;
 
 /**
- *
+ * Operations for dealing with Samples.
  */
 public abstract class SampleOperation extends NodeOperation {
-    
+
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
 
     /**
@@ -56,11 +54,6 @@ public abstract class SampleOperation extends NodeOperation {
             public String toString(Sample message) throws IOException {
                 StringBuilder avr = new StringBuilder();
 
-                // Print the byte string as hex
-                //Formatter formatter = new Formatter(avr);
-                //for (byte b : message.getAVR().toByteArray()) {
-                //    formatter.format("%02x", b);
-                //}
                 avr.append(System.lineSeparator());
 
                 // Append the logical representation of the message
@@ -69,17 +62,17 @@ public abstract class SampleOperation extends NodeOperation {
             }
         });
     }
-    
+
     /**
      * Canary value for the latest sample.
      */
     private static final int LATEST_SAMPLE = 0;
 
     private static final String RESSOURCE = "sample";
-    
+
     @Parameter(names = {"-s", "--sample-id"}, validateWith = SampleExclusionValidator.class, description = "Sample id. " + LATEST_SAMPLE + " for latest sample.")
     private int sampleId = LATEST_SAMPLE;
-    
+
     /**
      * Ensures that any Operations who implement other means of specifying the sample (ie --all) can verify both options aren't supplied.
      */
@@ -94,9 +87,12 @@ public abstract class SampleOperation extends NodeOperation {
         }
     }
 
+    /**
+     * Get a single sample from the node, without deleting it.
+     */
     @Parameters(commandDescription = "Get a sample from the node(s)")
     public static class Get extends SampleOperation {
-        
+
         @Override
         public void processSample(URI uri) throws IOException {
             Sample sample = getSample(uri);
@@ -104,6 +100,9 @@ public abstract class SampleOperation extends NodeOperation {
         }
     }
 
+    /**
+     * Delete samples from the nodes.
+     */
     @Parameters(commandDescription = "Delete a sample from the node(s)")
     public static class Delete extends SampleOperation {
 
@@ -114,6 +113,9 @@ public abstract class SampleOperation extends NodeOperation {
         }
     }
 
+    /**
+     * Get, decode, and delete samples from a node.
+     */
     @Parameters(commandDescription = "Get sample(s) from the node(s), decode them, delete them from the node(s), and output them in a directory")
     public static class Grab extends SampleOperation {
 
@@ -149,7 +151,7 @@ public abstract class SampleOperation extends NodeOperation {
 
             // Substring strips the aquare backets from around the IPv6 address
             saveSample(dir, uri.getHost().substring(1, uri.getHost().length() - 1), sample);
-            
+
             deleteSample(getURI(uri, sample.getId()));
             log.log(Level.INFO, "Sample {0} deleted from node", sample.getId());
         }
@@ -197,10 +199,10 @@ public abstract class SampleOperation extends NodeOperation {
     }
 
     /**
-     * 
-     * @param uri
-     * @return
-     * @throws IOException 
+     * Get a sample from a URI.
+     * @param uri The URI to get a sample from.
+     * @return The Sample decoded at the URI.
+     * @throws IOException If we fail to communicate with the node, or we fail to decode the sample we got.
      */
     protected static Sample getSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
@@ -213,15 +215,20 @@ public abstract class SampleOperation extends NodeOperation {
 
         throw new CoapException(uri, Method.GET, response, "Unable to get sample");
     }
-    
+
+    /**
+     * Delete a sample from a URI.
+     * @param uri The URI of the sample.
+     * @throws IOException If we fail to communicate with the node, or we fail to decode the sample we got.
+     */
     protected static void deleteSample(URI uri) throws IOException {
         CoapClient client = new CoapClient(uri);
-        
+
         log.log(Level.FINE, "Attempting to delete sample from: {0}", client.getURI());
 
         CoapResponse response = client.delete();
         if (response != null && response.isSuccess()) {
-            return; 
+            return;
         }
 
         throw new CoapException(uri, Method.DELETE, response, "Failed to delete Sample");
@@ -235,7 +242,7 @@ public abstract class SampleOperation extends NodeOperation {
      * @throws IOException If an error occurs encoding the sample, or writing to the file.
      */
     protected static void saveSample(String dir, String suffix, Sample sample) throws IOException {
-        File file = new File(dir + System.currentTimeMillis() + "_" + suffix);
+        File file = new File(dir + System.nanoTime() + "_" + suffix);
 
         try (FileOutputStream fileStream = new FileOutputStream(file)) {
             sample.writeDelimitedTo(fileStream);
@@ -248,22 +255,24 @@ public abstract class SampleOperation extends NodeOperation {
     public void processNode(URI uri) throws IOException {
         processSample(getURI(uri, sampleId));
     }
-    
+
     /**
      * Process a given sample. Returns true if in the case of multiple samples the ID should be decremented.
      * @param uri
-     * @throws IOException 
+     * @throws IOException
      */
     public abstract void processSample(URI uri) throws IOException;
-    
-    protected int getNextSample(int currentSample) {
-        return currentSample - 1;
-    }
-    
+
+    /**
+     * Get the URI associated with a given sample ID.
+     * @param base The base URI of the node.
+     * @param sampleId The sample ID.
+     * @return The URI representing the sample with that ID on that node.
+     */
     protected URI getURI(URI base, int sampleId) {
         return base.resolve(sampleId == LATEST_SAMPLE ? "" : Integer.toString(sampleId));
     }
-    
+
     @Override
     public String getRessource() {
         return RESSOURCE;
