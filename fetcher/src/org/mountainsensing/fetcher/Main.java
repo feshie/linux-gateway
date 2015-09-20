@@ -17,9 +17,14 @@ import java.util.logging.Logger;
 import org.mountainsensing.fetcher.operations.*;
 
 /**
- *
+ * Main class. Parses command line arguments, and runs required command.
  */
 public class Main {
+
+    /**
+     * Name the fetcher can be invoked by.
+     */
+    private static final String PROGRAM_NAME = "fetcher";
 
     /**
      * Map of all the command names to their associated operation.
@@ -125,6 +130,7 @@ public class Main {
      */
     private static String parseArgs(String[] args, Options options) throws ParameterException {
         JCommander parser = new JCommander(options);
+        parser.setProgramName(PROGRAM_NAME);
 
         for (String opName : operations.keySet()) {
             parser.addCommand(opName, operations.get(opName));
