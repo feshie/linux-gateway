@@ -1,3 +1,8 @@
+/**
+ * decode operations for node data, including serial dump decoder
+ * Arthur Fabre, University of Southampton, 2015
+ * mountainsensing.org
+ */
 package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameter;
