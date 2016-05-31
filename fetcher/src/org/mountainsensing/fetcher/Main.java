@@ -1,3 +1,8 @@
+/**
+ * Main CoAP fetcher for sensor nodes
+ * Arthur Fabre, University of Southampton, 2015
+ * mountainsensing.org
+ */
 package org.mountainsensing.fetcher;
 
 import org.mountainsensing.fetcher.operations.NodeOperation;
