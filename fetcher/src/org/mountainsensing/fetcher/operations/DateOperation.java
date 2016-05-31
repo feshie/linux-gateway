@@ -1,3 +1,8 @@
+/**
+ * set date on nodes using CoAP requests
+ * Arthur Fabre, University of Southampton, 2015
+ * mountainsensing.org
+ */
 package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameter;
