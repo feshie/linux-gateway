@@ -177,7 +177,7 @@ public abstract class SampleOperation extends NodeOperation {
         private static final String SAMPLE_START = "+++SERIALDUMP+++SAMPLE+++START+++";
         private static final String SAMPLE_END = "+++SERIALDUMP+++SAMPLE+++END+++";
 
-        @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples. Only supported with '--is-serial-dumpi'")
+        @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples. Only supported with '--is-serial-dump'")
         private String dir;
 
         @Override
