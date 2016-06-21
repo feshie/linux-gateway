@@ -40,8 +40,11 @@ public abstract class DecodeOperation extends Operation {
     @Parameter(description = "File(s) to read from. Reads from stdin if none specified.", required = false, arity = 1)
     private List<String> files = new ArrayList<>();
 
-    @Parameter(names = {"-s", "--is-serial-dump"}, description = "Input is a hex encoded serial dump, as produced by z1-coap-serial-dump.")
+    @Parameter(names = {"-s", "--serial-dump"}, description = "Input is a hex encoded serial dump, as produced by z1-coap-serial-dump")
     private boolean isDump = false;
+
+    @Parameter(names = {"-H", "--hex-dump"}, description = "Input is a hex encoded, one message per line")
+    private boolean isHex = false;
 
     @Override
     public void perform() {
@@ -67,8 +70,12 @@ public abstract class DecodeOperation extends Operation {
             setContext(inputs.get(in));
 
             try {
+
                 if (isDump) {
                     decodeDump(in, inputs.get(in));
+
+                } else if (isHex) {
+                    decodeHex(in, inputs.get(in));
 
                 // Otherwise binary
                 } else {
@@ -126,6 +133,32 @@ public abstract class DecodeOperation extends Operation {
 
             try {
                 decode(DatatypeConverter.parseHexBinary(line), nodeId);
+            } catch (IOException | IllegalArgumentException e) {
+                log.log(Level.WARNING, e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * Decode a hex dump.
+     * @param in A stream to the hex dump.
+     * @param name A human readable name for the input stream.
+     * @throws IOException If an error occurs.
+     */
+    private void decodeHex(InputStream in, String name) throws IOException {
+        LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
+        String line;
+
+        while ((line = reader.readLine()) != null) {
+
+            setContext(name + ":" + reader.getLineNumber());
+
+            if (line.isEmpty()) {
+                continue;
+            }
+
+            try {
+                decode(DatatypeConverter.parseHexBinary(line), null);
             } catch (IOException | IllegalArgumentException e) {
                 log.log(Level.WARNING, e.getMessage(), e);
             }
