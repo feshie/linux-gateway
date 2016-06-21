@@ -48,8 +48,6 @@ public abstract class NodeOperation extends Operation {
 
     /**
      * The list of nodes to process.
-     * These should be part of the Main options, but due to a bug in JCommander have to be decalared as arguments per Operation.
-     * Hidden to make the help output clearer.
      */
     @Parameter(description = "node(s)", required = true)
     private List<String> nodes = new ArrayList<>();
