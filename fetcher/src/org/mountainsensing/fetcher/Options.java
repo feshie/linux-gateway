@@ -9,7 +9,7 @@ import java.util.logging.Level;
  */
 public class Options {
 
-    @Parameter(names = {"-p", "--prefix"}, description = "/96 IPv6 prefix for the nodes")
+    @Parameter(names = {"-p", "--prefix"}, description = "IPv6 prefix for the nodes. Prepended to node ids")
     private String prefix = "aaaa::c30c:0:0:";
 
     @Parameter(names = {"-t", "--timeout"}, description = "CoAP timeout in seconds")
