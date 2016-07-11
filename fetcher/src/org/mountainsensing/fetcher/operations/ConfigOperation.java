@@ -14,8 +14,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
@@ -24,7 +25,6 @@ import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
-import org.mountainsensing.fetcher.utils.ProtoBufUtils.FieldOverride;
 import org.mountainsensing.pb.Settings.SensorConfig;
 import org.mountainsensing.pb.Settings.SensorConfig.Builder;
 import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
@@ -35,6 +35,39 @@ import org.mountainsensing.pb.Settings.SensorConfig.RoutingMode;
 public abstract class ConfigOperation extends NodeOperation {
 
     private static final Logger log = Logger.getLogger(SampleOperation.class.getName());
+
+    /**
+     * Map used to override the printing of Configs.
+     * The key is the integer id of the field to override the printing for,
+     * mapping to a FieldOverride returning the String to use for that field.
+     */
+    private static final Map<Integer, ProtoBufUtils.FieldOverride<SensorConfig>> configOverrideMap;
+    static {
+        configOverrideMap = new HashMap<>();
+
+        // Override field 4 to print the AVRIDs as hex
+        configOverrideMap.put(4, new ProtoBufUtils.FieldOverride<SensorConfig>() {
+            @Override
+            public String toString(SensorConfig message) {
+                String output = "[";
+                String sep = "";
+                for (int avr : message.getAvrIDsList()) {
+                    output += sep + Integer.toHexString(avr);
+                    sep = ", ";
+                }
+                output += "]";
+                return output;
+            }
+        });
+
+        // Override field 7 to print the Power Board ID as hex
+        configOverrideMap.put(7, new ProtoBufUtils.FieldOverride<SensorConfig>() {
+            @Override
+            public String toString(SensorConfig message) {
+                return Integer.toHexString(message.getPowerID());
+            }
+        });
+    }
 
     public static final String RESSOURCE = "config";
 
@@ -57,6 +90,9 @@ public abstract class ConfigOperation extends NodeOperation {
 
         @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, description = "ID of AVR(s) connected to the node(s), in hex")
         private List<Integer> avrs;
+
+        @Parameter(names = {"-P", "--power"}, converter = HexConverter.class, description = "ID of Power Board connected to the node(s), in hex")
+        private Integer powerID;
 
         @Parameter(names = {"-m", "--routing-mode"}, converter = RoutingModeConverter.class, description = "Routing mode of the node(s).")
         private RoutingMode routingMode;
@@ -105,15 +141,30 @@ public abstract class ConfigOperation extends NodeOperation {
             settings.interval = 1200;
             settings.avrs = new ArrayList<>();
             settings.routingMode = RoutingMode.MESH;
+            settings.powerID = null;
         }
 
         @Override
         public void processNode(URI uri) throws CoapException, IOException {
-            SensorConfig config = SensorConfig.newBuilder().setInterval(settings.interval).setHasADC1(settings.hasAdc1).setHasADC2(settings.hasAdc2).setHasRain(settings.hasRain).addAllAvrIDs(settings.avrs).setRoutingMode(settings.routingMode).build();
+            Builder configBuilder = SensorConfig.newBuilder();
 
-            setConfig(uri, config);
+            configBuilder.setInterval(settings.interval);
+            configBuilder.setHasADC1(settings.hasAdc1);
+            configBuilder.setHasADC2(settings.hasAdc2);
+            configBuilder.setHasRain(settings.hasRain);
+            configBuilder.addAllAvrIDs(settings.avrs);
+            configBuilder.setRoutingMode(settings.routingMode);
 
-            log.log(Level.INFO, "Config set to \n{0}", configToString(config));
+            // Set a PowerID only if one has been specified
+            if (settings.powerID != null) {
+                configBuilder.setPowerID(settings.powerID);
+            }
+
+            SensorConfig newConfig = configBuilder.build();
+
+            setConfig(uri, newConfig);
+
+            log.log(Level.INFO, "Config set to \n{0}", configToString(newConfig));
         }
     }
 
@@ -137,6 +188,13 @@ public abstract class ConfigOperation extends NodeOperation {
             editBuilder.setHasRain(settings.hasRain != null ? settings.hasRain : oldConfig.getHasRain());
             editBuilder.addAllAvrIDs(settings.avrs != null ? settings.avrs : oldConfig.getAvrIDsList());
             editBuilder.setRoutingMode(settings.routingMode != null ? settings.routingMode : oldConfig.getRoutingMode());
+
+            // Ensure we leave PowerID clear if none was specified and the oldConfig didn't have it set
+            if (settings.powerID != null) {
+                editBuilder.setPowerID(settings.powerID);
+            } else if (oldConfig.hasPowerID()) {
+                editBuilder.setPowerID(oldConfig.getPowerID());
+            }
 
             SensorConfig newConfig = editBuilder.build();
 
@@ -223,19 +281,6 @@ public abstract class ConfigOperation extends NodeOperation {
      * @return A string representing the config, properly formatted.
      */
     private static String configToString(SensorConfig config) throws IOException {
-        // Override field 4 to print the AVRIDs as hex
-        return ProtoBufUtils.toString(config, Collections.singletonMap(4, new FieldOverride<SensorConfig>() {
-            @Override
-            public String toString(SensorConfig message) {
-                String output = "[";
-                String sep = "";
-                for (int avr : message.getAvrIDsList()) {
-                    output += sep + Integer.toHexString(avr);
-                    sep = ", ";
-                }
-                output += "]";
-                return output;
-            }
-        }));
+        return ProtoBufUtils.toString(config, configOverrideMap);
     }
 }
