@@ -1,7 +1,9 @@
 package org.mountainsensing.fetcher;
 
+import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import java.util.logging.Level;
 
 /**
@@ -24,15 +26,33 @@ public class Options {
     @Parameter(names = {"-v", "--version"}, description = "Print the version and exit")
     private boolean version = false;
 
-    @Parameter(names = {"--console-level"}, converter = LevelConverter.class, description = "Minimum log level of messages displayed on the console")
+    @Parameter(names = {"--console-level"}, converter = LevelConverter.class, validateWith=LevelValidator.class, description = "Minimum log level of messages displayed on the console")
     private Level consoleLevel = Level.INFO;
 
-    @Parameter(names = {"--file-level"}, converter = LevelConverter.class, description = "Minimum log level of messages printed to the log file. Not valid without --log-file.")
+    @Parameter(names = {"--file-level"}, converter = LevelConverter.class, validateWith=LevelValidator.class, description = "Minimum log level of messages printed to the log file. Not valid without --log-file.")
     private Level fileLevel = Level.FINE;
 
     @Parameter(names = {"--log-file"}, description = "Log messages to a seperate file")
     private String logFile = null;
 
+    /**
+     * Ensure a log Level is valid.
+     */
+    public static class LevelValidator implements IParameterValidator {
+        @Override
+        public void validate(String name, String value) throws ParameterException {
+            // The knownLoggers are not publicaly exposed, the only way of checking value is valid are try/catch, or reflection...
+            try {
+                Level.parse(value);
+            } catch (IllegalArgumentException e) {
+                throw new ParameterException("Parameter " + name + " must be a valid log level", e);
+            }
+        }
+    }
+
+    /**
+     * Convert a log Level to it's proper enum.
+     */
     public static class LevelConverter implements IStringConverter<Level> {
         @Override
         public Level convert(String value) {

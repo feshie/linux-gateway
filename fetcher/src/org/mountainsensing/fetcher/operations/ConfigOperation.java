@@ -5,8 +5,10 @@
  */
 package org.mountainsensing.fetcher.operations;
 
+import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import com.beust.jcommander.Parameters;
 import com.beust.jcommander.ParametersDelegate;
 import java.io.ByteArrayInputStream;
@@ -14,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -89,15 +92,30 @@ public abstract class ConfigOperation extends NodeOperation {
         @Parameter(names = {"-i", "--interval"}, description = "Sampling interval in seconds")
         private Integer interval;
 
-        @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, description = "ID of AVR(s) connected to the node(s), in hex")
+        @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of AVR(s) connected to the node(s), in hex")
         private List<Integer> avrs;
 
-        @Parameter(names = {"-P", "--power"}, converter = HexConverter.class, description = "ID of Power Board connected to the node(s), in hex")
+        @Parameter(names = {"-P", "--power"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of Power Board connected to the node(s), in hex")
         private Integer powerID;
 
-        @Parameter(names = {"-m", "--routing-mode"}, converter = RoutingModeConverter.class, description = "Routing mode of the node(s).")
+        @Parameter(names = {"-m", "--routing-mode"}, converter = RoutingModeConverter.class, validateWith=RoutingModeValidator.class, description = "Routing mode of the node(s).")
         private RoutingMode routingMode;
 
+        /**
+         * Validate a HEX String input.
+         */
+        public static class HexValidator implements IParameterValidator {
+            @Override
+            public void validate(String name, String value) throws ParameterException {
+                if (!FormatUtils.isHex(value)) {
+                    throw new ParameterException("Parameter " + name + " should be a valid Hex value");
+                }
+            }
+        }
+
+        /**
+         * Convert a HEX String to an Integer.
+         */
         public static class HexConverter implements IStringConverter<Integer> {
             @Override
             public Integer convert(String value) {
@@ -105,6 +123,25 @@ public abstract class ConfigOperation extends NodeOperation {
             }
         }
 
+        /**
+         * Validate a RoutingMode input.
+         */
+        public static class RoutingModeValidator implements IParameterValidator {
+            @Override
+            public void validate(String name, String value) throws ParameterException {
+                for (RoutingMode mode : RoutingMode.values()) {
+                    if (mode.name().equals(value)) {
+                        return;
+                    }
+                }
+
+                throw new ParameterException("Parameter " + name + " should be one of " + Arrays.toString(RoutingMode.values()));
+            }
+        }
+
+        /**
+         * Convert a RoutingMode to the actual enum.
+         */
         public static class RoutingModeConverter implements IStringConverter<RoutingMode> {
             @Override
             public RoutingMode convert(String value) {

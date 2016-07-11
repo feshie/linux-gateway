@@ -35,6 +35,16 @@ public class FormatUtils {
     }
 
     /**
+     * Check whether a String is a valid HEX representation of a number or not.
+     * @param s The HEX String to check
+     * @return True if the String could be parsed as HEX, false otherwise.
+     */
+    public static boolean isHex(String s) {
+        // A hex string can start with an optional HEX_PREFIX, and then only be followed by digits until the end
+        return s.matches("\\A" + "(" +  HEX_PREFIX + ")?" + "[0-9]+" + "\\z");
+    }
+
+    /**
      * Parse a number from a HEX String.
      * @param s The HEX String to parse, with an optional leading {@link FormatUtils.HEX_PREFIX}.
      * @return An Integer representing s.
