@@ -24,6 +24,7 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
+import org.mountainsensing.fetcher.utils.FormatUtils;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.pb.Settings.SensorConfig;
 import org.mountainsensing.pb.Settings.SensorConfig.Builder;
@@ -52,7 +53,7 @@ public abstract class ConfigOperation extends NodeOperation {
                 String output = "[";
                 String sep = "";
                 for (int avr : message.getAvrIDsList()) {
-                    output += sep + Integer.toHexString(avr);
+                    output += sep + FormatUtils.toHex(avr);
                     sep = ", ";
                 }
                 output += "]";
@@ -64,7 +65,7 @@ public abstract class ConfigOperation extends NodeOperation {
         configOverrideMap.put(7, new ProtoBufUtils.FieldOverride<SensorConfig>() {
             @Override
             public String toString(SensorConfig message) {
-                return Integer.toHexString(message.getPowerID());
+                return FormatUtils.toHex(message.getPowerID());
             }
         });
     }
@@ -100,7 +101,7 @@ public abstract class ConfigOperation extends NodeOperation {
         public static class HexConverter implements IStringConverter<Integer> {
             @Override
             public Integer convert(String value) {
-                return Integer.parseInt(value, 16);
+                return FormatUtils.fromHex(value);
             }
         }
 

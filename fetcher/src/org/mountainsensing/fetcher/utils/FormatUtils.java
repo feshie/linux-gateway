@@ -6,6 +6,16 @@ package org.mountainsensing.fetcher.utils;
 public class FormatUtils {
 
     /**
+     * Prefix indicating a String is in HEX (0x).
+     */
+    public static final String HEX_PREFIX = "0x";
+
+    /**
+     * Base for HEX numbers.
+     */
+    private static final int HEX_BASE = 16;
+
+    /**
      * Indent a String with 4 spaces. Every line in the string will be indented.
      * @param s The String to indented
      * @return An indented version of the String
@@ -13,5 +23,27 @@ public class FormatUtils {
     public static String indent(String s) {
         // (?m) treats a single string as multiline
         return s.replaceAll("(?m)^", "    ");
+    }
+
+    /**
+     * Get the HEX representation of an Integer.
+     * @param i The Integer
+     * @return A String representing the HEX value of i, with a {@link FormatUtils.HEX_PREFIX}.
+     */
+    public static String toHex(int i) {
+        return HEX_PREFIX + Integer.toHexString(i);
+    }
+
+    /**
+     * Parse a number from a HEX String.
+     * @param s The HEX String to parse, with an optional leading {@link FormatUtils.HEX_PREFIX}.
+     * @return An Integer representing s.
+     */
+    public static int fromHex(String s) {
+        if (s.startsWith(HEX_PREFIX)) {
+            s = s.replaceFirst(HEX_PREFIX, "");
+        }
+
+        return Integer.parseInt(s, HEX_BASE);
     }
 }
