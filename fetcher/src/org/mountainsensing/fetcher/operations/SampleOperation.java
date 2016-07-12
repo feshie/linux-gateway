@@ -46,7 +46,7 @@ public abstract class SampleOperation extends NodeOperation {
     static {
         sampleOverrideMap = new HashMap<>();
         // Field 1 is the sampling time, we need to handle it sepcially to print epoch + human readable time.
-        sampleOverrideMap.put(1, new ProtoBufUtils.FieldOverride<Sample>() {
+        sampleOverrideMap.put(Sample.TIME_FIELD_NUMBER, new ProtoBufUtils.FieldOverride<Sample>() {
             @Override
             public String toString(Sample message) {
                 return new UTCEpochDateFormat().format(new EpochDate(message.getTime()));
@@ -54,7 +54,7 @@ public abstract class SampleOperation extends NodeOperation {
         });
 
         // Field 10 is the embedded AVR message - handle it specially to actually decode it
-        sampleOverrideMap.put(10, new ProtoBufUtils.FieldOverride<Sample>() {
+        sampleOverrideMap.put(Sample.AVR_FIELD_NUMBER, new ProtoBufUtils.FieldOverride<Sample>() {
             @Override
             public String toString(Sample message) throws IOException {
                 StringBuilder avr = new StringBuilder();

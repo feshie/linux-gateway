@@ -47,8 +47,8 @@ public abstract class ConfigOperation extends NodeOperation {
     static {
         configOverrideMap = new HashMap<>();
 
-        // Override field 4 to print the AVRIDs as hex
-        configOverrideMap.put(4, new ProtoBufUtils.FieldOverride<SensorConfig>() {
+        // Override field 4 to print the AVRID as hex
+        configOverrideMap.put(SensorConfig.AVRID_FIELD_NUMBER, new ProtoBufUtils.FieldOverride<SensorConfig>() {
             @Override
             public String toString(SensorConfig message) {
                 return FormatUtils.toHex(message.getAvrID());
@@ -56,7 +56,7 @@ public abstract class ConfigOperation extends NodeOperation {
         });
 
         // Override field 7 to print the Power Board ID as hex
-        configOverrideMap.put(7, new ProtoBufUtils.FieldOverride<SensorConfig>() {
+        configOverrideMap.put(SensorConfig.POWERID_FIELD_NUMBER, new ProtoBufUtils.FieldOverride<SensorConfig>() {
             @Override
             public String toString(SensorConfig message) {
                 return FormatUtils.toHex(message.getPowerID());
