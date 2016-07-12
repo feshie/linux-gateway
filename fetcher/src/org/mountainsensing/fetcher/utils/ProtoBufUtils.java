@@ -88,9 +88,8 @@ public class ProtoBufUtils {
         toAppend.append(descriptor.getName()).append(": ");
 
         // If there's an override for this field, use that
-        // The java protobuf implementation seems to be 0 indexed, instead of 1 indexed as per the proto defintions.
-        if (overrides != null && overrides.containsKey(descriptor.getIndex() + 1)) {
-            toAppend.append(overrides.get(descriptor.getIndex() + 1).toString(message));
+        if (overrides != null && overrides.containsKey(descriptor.getNumber())) {
+            toAppend.append(overrides.get(descriptor.getNumber()).toString(message));
 
         // If this field is a protobuf, print it ourselves
         } else if (field instanceof GeneratedMessage) {
