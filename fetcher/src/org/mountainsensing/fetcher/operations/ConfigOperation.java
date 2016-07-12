@@ -15,9 +15,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -53,14 +51,7 @@ public abstract class ConfigOperation extends NodeOperation {
         configOverrideMap.put(4, new ProtoBufUtils.FieldOverride<SensorConfig>() {
             @Override
             public String toString(SensorConfig message) {
-                String output = "[";
-                String sep = "";
-                for (int avr : message.getAvrIDsList()) {
-                    output += sep + FormatUtils.toHex(avr);
-                    sep = ", ";
-                }
-                output += "]";
-                return output;
+                return FormatUtils.toHex(message.getAvrID());
             }
         });
 
@@ -92,10 +83,10 @@ public abstract class ConfigOperation extends NodeOperation {
         @Parameter(names = {"-i", "--interval"}, description = "Sampling interval in seconds")
         private Integer interval;
 
-        @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of AVR(s) connected to the node(s), in hex")
-        private List<Integer> avrs;
+        @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the AVR connected to the node(s), in hex")
+        private Integer avrID;
 
-        @Parameter(names = {"-P", "--power"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of Power Board connected to the node(s), in hex")
+        @Parameter(names = {"-P", "--power"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the Power Board connected to the node(s), in hex")
         private Integer powerID;
 
         @Parameter(names = {"-m", "--routing-mode"}, converter = RoutingModeConverter.class, validateWith=RoutingModeValidator.class, description = "Routing mode of the node(s).")
@@ -177,7 +168,7 @@ public abstract class ConfigOperation extends NodeOperation {
             settings.hasAdc2 = false;
             settings.hasRain = false;
             settings.interval = 1200;
-            settings.avrs = new ArrayList<>();
+            settings.avrID = null;
             settings.routingMode = RoutingMode.MESH;
             settings.powerID = null;
         }
@@ -190,8 +181,12 @@ public abstract class ConfigOperation extends NodeOperation {
             configBuilder.setHasADC1(settings.hasAdc1);
             configBuilder.setHasADC2(settings.hasAdc2);
             configBuilder.setHasRain(settings.hasRain);
-            configBuilder.addAllAvrIDs(settings.avrs);
+
             configBuilder.setRoutingMode(settings.routingMode);
+
+            if (settings.avrID != null) {
+                configBuilder.setAvrID(settings.avrID);
+            }
 
             // Set a PowerID only if one has been specified
             if (settings.powerID != null) {
@@ -224,8 +219,14 @@ public abstract class ConfigOperation extends NodeOperation {
             editBuilder.setHasADC1(settings.hasAdc1 != null ? settings.hasAdc1 : oldConfig.getHasADC1());
             editBuilder.setHasADC2(settings.hasAdc2 != null ? settings.hasAdc2 : oldConfig.getHasADC2());
             editBuilder.setHasRain(settings.hasRain != null ? settings.hasRain : oldConfig.getHasRain());
-            editBuilder.addAllAvrIDs(settings.avrs != null ? settings.avrs : oldConfig.getAvrIDsList());
             editBuilder.setRoutingMode(settings.routingMode != null ? settings.routingMode : oldConfig.getRoutingMode());
+
+            // Ensure we leave AvrID clear if none was specified and the oldConfig didn't have it set
+            if (settings.avrID != null) {
+                editBuilder.setAvrID(settings.avrID);
+            } else if (oldConfig.hasAvrID()) {
+                editBuilder.setPowerID(oldConfig.getAvrID());
+            }
 
             // Ensure we leave PowerID clear if none was specified and the oldConfig didn't have it set
             if (settings.powerID != null) {
