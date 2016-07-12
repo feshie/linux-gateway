@@ -41,7 +41,7 @@ public class FormatUtils {
      */
     public static boolean isHex(String s) {
         // A hex string can start with an optional HEX_PREFIX, and then only be followed by digits until the end
-        return s.matches("\\A" + "(" +  HEX_PREFIX + ")?" + "[0-9]+" + "\\z");
+        return s.matches("\\A" + "(" +  HEX_PREFIX + ")?" + "[0-9A-Fa-f]+" + "\\z");
     }
 
     /**
