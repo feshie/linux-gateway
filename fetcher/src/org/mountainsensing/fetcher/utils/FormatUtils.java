@@ -31,7 +31,7 @@ public class FormatUtils {
      * @return A String representing the HEX value of i, with a {@link FormatUtils.HEX_PREFIX}.
      */
     public static String toHex(int i) {
-        return HEX_PREFIX + Integer.toHexString(i);
+        return HEX_PREFIX + Integer.toHexString(i).toUpperCase();
     }
 
     /**
