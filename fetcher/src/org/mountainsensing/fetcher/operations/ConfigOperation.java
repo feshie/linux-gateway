@@ -225,7 +225,7 @@ public abstract class ConfigOperation extends NodeOperation {
             if (settings.avrID != null) {
                 editBuilder.setAvrID(settings.avrID);
             } else if (oldConfig.hasAvrID()) {
-                editBuilder.setPowerID(oldConfig.getAvrID());
+                editBuilder.setAvrID(oldConfig.getAvrID());
             }
 
             // Ensure we leave PowerID clear if none was specified and the oldConfig didn't have it set
