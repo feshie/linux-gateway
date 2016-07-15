@@ -11,6 +11,11 @@ public class FormatUtils {
     public static final String HEX_PREFIX = "0x";
 
     /**
+     * REGEX to validate hex input.
+     */
+    public static final String HEX_REGEX = "(" +  HEX_PREFIX + ")?" + "[0-9A-Fa-f]+";
+
+    /**
      * Base for HEX numbers.
      */
     private static final int HEX_BASE = 16;
@@ -41,7 +46,7 @@ public class FormatUtils {
      */
     public static boolean isHex(String s) {
         // A hex string can start with an optional HEX_PREFIX, and then only be followed by digits until the end
-        return s.matches("\\A" + "(" +  HEX_PREFIX + ")?" + "[0-9A-Fa-f]+" + "\\z");
+        return s.matches("\\A" + HEX_REGEX + "\\z");
     }
 
     /**

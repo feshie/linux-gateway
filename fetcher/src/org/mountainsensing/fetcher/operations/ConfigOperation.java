@@ -99,7 +99,7 @@ public abstract class ConfigOperation extends NodeOperation {
             @Override
             public void validate(String name, String value) throws ParameterException {
                 if (!FormatUtils.isHex(value)) {
-                    throw new ParameterException("Parameter " + name + " should be a valid Hex value");
+                    throw new ParameterException("Parameter " + name + " should be a valid Hex value " + FormatUtils.HEX_REGEX);
                 }
             }
         }
