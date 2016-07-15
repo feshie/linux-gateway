@@ -71,6 +71,12 @@ public abstract class ConfigOperation extends NodeOperation {
      * Used as a delegate for the force and update operations.
      */
     private static class Settings {
+
+        /**
+         * Magic canary value to clear an ID.
+         */
+        private static final int ID_NONE = 0x0;
+
         @Parameter(names = {"-a1", "--adc1"}, arity = 1, description = "ADC1 should be enabled")
         private Boolean hasAdc1;
 
@@ -83,14 +89,33 @@ public abstract class ConfigOperation extends NodeOperation {
         @Parameter(names = {"-i", "--interval"}, description = "Sampling interval in seconds")
         private Integer interval;
 
-        @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the AVR connected to the node(s), in hex")
+        @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the AVR connected to the node(s), in hex. " + ID_NONE + " for no AVR")
         private Integer avrID;
 
-        @Parameter(names = {"-p", "--power"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the Power Board connected to the node(s), in hex")
+        @Parameter(names = {"-p", "--power"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the Power Board connected to the node(s), in hex. " + ID_NONE + " for no Power Board")
         private Integer powerID;
 
         @Parameter(names = {"-m", "--routing-mode"}, converter = RoutingModeConverter.class, validateWith=RoutingModeValidator.class, description = "Routing mode of the node(s).")
         private RoutingMode routingMode;
+
+        /**
+         * Check if an ID specified is valid.
+         * An ID is valid when it is not null and not ID_NONE
+         * @param id The ID to check
+         * @return True if the ID is valid, false otherwise
+         */
+        public static boolean isValidID(Integer id) {
+            return id != null && id != ID_NONE;
+        }
+
+        /**
+         * Check if an ID specified is ID_NONE.
+         * @param id The ID to check
+         * @return True if is ID_NONE, false otherwise
+         */
+        public static boolean isNoneID(Integer id) {
+            return id == ID_NONE;
+        }
 
         /**
          * Validate a HEX String input.
@@ -184,12 +209,12 @@ public abstract class ConfigOperation extends NodeOperation {
 
             configBuilder.setRoutingMode(settings.routingMode);
 
-            if (settings.avrID != null) {
+            if (Settings.isValidID(settings.avrID)) {
                 configBuilder.setAvrID(settings.avrID);
             }
 
             // Set a PowerID only if one has been specified
-            if (settings.powerID != null) {
+            if (Settings.isValidID(settings.powerID)) {
                 configBuilder.setPowerID(settings.powerID);
             }
 
@@ -221,17 +246,17 @@ public abstract class ConfigOperation extends NodeOperation {
             editBuilder.setHasRain(settings.hasRain != null ? settings.hasRain : oldConfig.getHasRain());
             editBuilder.setRoutingMode(settings.routingMode != null ? settings.routingMode : oldConfig.getRoutingMode());
 
-            // Ensure we leave AvrID clear if none was specified and the oldConfig didn't have it set
-            if (settings.avrID != null) {
+            // Ensure we only set AvrID if a valid ID was specified, or not NONE was specified and the old config had one
+            if (Settings.isValidID(settings.avrID)) {
                 editBuilder.setAvrID(settings.avrID);
-            } else if (oldConfig.hasAvrID()) {
+            } else if (!Settings.isNoneID(settings.avrID) && oldConfig.hasAvrID()) {
                 editBuilder.setAvrID(oldConfig.getAvrID());
             }
 
-            // Ensure we leave PowerID clear if none was specified and the oldConfig didn't have it set
-            if (settings.powerID != null) {
+            // Ensure we only set PowerID if a valid ID was specified, or not NONE was specified and the old config had one
+            if (Settings.isValidID(settings.powerID)) {
                 editBuilder.setPowerID(settings.powerID);
-            } else if (oldConfig.hasPowerID()) {
+            } else if (!Settings.isNoneID(settings.powerID) && oldConfig.hasPowerID()) {
                 editBuilder.setPowerID(oldConfig.getPowerID());
             }
 
