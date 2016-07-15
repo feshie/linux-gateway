@@ -86,7 +86,7 @@ public abstract class ConfigOperation extends NodeOperation {
         @Parameter(names = {"-a", "--avr"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the AVR connected to the node(s), in hex")
         private Integer avrID;
 
-        @Parameter(names = {"-P", "--power"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the Power Board connected to the node(s), in hex")
+        @Parameter(names = {"-p", "--power"}, converter = HexConverter.class, validateWith=HexValidator.class, description = "ID of the Power Board connected to the node(s), in hex")
         private Integer powerID;
 
         @Parameter(names = {"-m", "--routing-mode"}, converter = RoutingModeConverter.class, validateWith=RoutingModeValidator.class, description = "Routing mode of the node(s).")
