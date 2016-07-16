@@ -114,7 +114,7 @@ public abstract class ConfigOperation extends NodeOperation {
          * @return True if is ID_NONE, false otherwise
          */
         public static boolean isNoneID(Integer id) {
-            return id == ID_NONE;
+            return id != null && id == ID_NONE;
         }
 
         /**
