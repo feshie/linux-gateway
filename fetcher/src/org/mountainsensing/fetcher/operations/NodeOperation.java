@@ -5,10 +5,14 @@
  */
 package org.mountainsensing.fetcher.operations;
 
+import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -34,7 +38,7 @@ public abstract class NodeOperation extends Operation {
     /**
      * Protocol to use for communication with nodes.
      */
-    private static final String PROTOCOL = "coap://";
+    private static final String PROTOCOL = "coap";
 
     /**
      * The amount of retries.
@@ -44,8 +48,24 @@ public abstract class NodeOperation extends Operation {
     /**
      * The list of nodes to process.
      */
-    @Parameter(description = "node(s)", required = true)
-    private List<String> nodes = new ArrayList<>();
+    @Parameter(description = "node(s)", converter=InetAddressConverter.class, required = true)
+    private List<InetAddress> nodes = new ArrayList<>();
+
+    /**
+     * Convert a String to an InetAddress.
+     * This preforms a DNS lookup if required.
+     */
+    public static class InetAddressConverter implements IStringConverter<InetAddress> {
+        @Override
+        public InetAddress convert(String value) {
+            try {
+                return InetAddress.getByName(value);
+            } catch (UnknownHostException e) {
+                // This should never happen, as JCommander calls the validator first
+                throw new ParameterException("Error resolving IP of node " + value, e);
+            }
+        }
+    }
 
     /**
      * Initialise the NodeOperations.
@@ -86,12 +106,13 @@ public abstract class NodeOperation extends Operation {
 
     @Override
     public void perform() {
-        for (String node : nodes) {
-            setContext(node);
+        for (InetAddress node : nodes) {
+            setContext(node.toString());
 
             URI uri;
             try {
-                uri = new URI(PROTOCOL + "[" + node + "]" + "/" + getRessource() + "/");
+                // This will add ://, and insert square brackets around IPv6 addresses
+                uri = new URI(PROTOCOL, node.getHostAddress(), "/" + getRessource(), null);
             } catch (URISyntaxException e) {
                 log.log(Level.WARNING, e.getMessage(), e);
                 continue;
