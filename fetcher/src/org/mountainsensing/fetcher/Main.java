@@ -110,7 +110,7 @@ public class Main {
         Operation.setContextFormatter(logFormatter);
 
         // Sketchy hacky magic. Would be nice to get rid of it.
-        NodeOperation.init(options.getPrefix(), options.getRetries(), options.getTimeout());
+        NodeOperation.init(options.getRetries(), options.getTimeout());
 
         operation.perform();
 

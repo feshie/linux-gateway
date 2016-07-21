@@ -10,10 +10,6 @@ import java.util.logging.Level;
  * Main options parsed from the command line.
  */
 public class Options {
-
-    @Parameter(names = {"-p", "--prefix"}, description = "IPv6 prefix for the nodes. Prepended to node ids")
-    private String prefix = "aaaa::c30c:0:0:";
-
     @Parameter(names = {"-t", "--timeout"}, description = "CoAP timeout in seconds")
     private int timeout = 10;
 
@@ -58,14 +54,6 @@ public class Options {
         public Level convert(String value) {
             return Level.parse(value);
         }
-    }
-
-    /**
-     * Get a String representing the IPv6 Prefix.
-     * @return The IPV6 /96 Prefix to prepend to use
-     */
-    public String getPrefix() {
-        return prefix;
     }
 
     /**

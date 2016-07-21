@@ -37,11 +37,6 @@ public abstract class NodeOperation extends Operation {
     private static final String PROTOCOL = "coap://";
 
     /**
-     * The prefix to use for nodes.
-     */
-    private static String prefix;
-
-    /**
      * The amount of retries.
      */
     private static int retries;
@@ -54,12 +49,10 @@ public abstract class NodeOperation extends Operation {
 
     /**
      * Initialise the NodeOperations.
-     * @param prefix The IPv6 prefix/
      * @param retries The amount of times to try before giving up.
      * @param timeout The timeout in seconds.
      */
-    public static void init(String prefix, int retries, int timeout) {
-        NodeOperation.prefix = prefix;
+    public static void init(int retries, int timeout) {
         NodeOperation.retries = retries;
 
         // Don't save / read from the Californium.properties file
@@ -98,7 +91,7 @@ public abstract class NodeOperation extends Operation {
 
             URI uri;
             try {
-                uri = new URI(PROTOCOL + "[" + prefix + node + "]" + "/" + getRessource() + "/");
+                uri = new URI(PROTOCOL + "[" + node + "]" + "/" + getRessource() + "/");
             } catch (URISyntaxException e) {
                 log.log(Level.WARNING, e.getMessage(), e);
                 continue;
