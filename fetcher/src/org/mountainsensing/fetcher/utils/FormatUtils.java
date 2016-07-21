@@ -1,5 +1,7 @@
 package org.mountainsensing.fetcher.utils;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Various Utils for Formatting Strings, such as indenting them.
  */
@@ -60,5 +62,19 @@ public class FormatUtils {
         }
 
         return Integer.parseInt(s, HEX_BASE);
+    }
+
+    /**
+     * Get a formatted string from a time interval.
+     * @param seconds The interval in seconds.
+     * @return A formatted days, hours, minutes, seconds string representing the interval.
+     */
+    public static String getInterval(long seconds) {
+        long days = TimeUnit.SECONDS.toDays(seconds);
+        long hours = TimeUnit.SECONDS.toHours(seconds - TimeUnit.DAYS.toSeconds(TimeUnit.SECONDS.toDays(seconds)));
+        long minutes = TimeUnit.SECONDS.toMinutes(seconds - TimeUnit.HOURS.toSeconds(TimeUnit.SECONDS.toHours(seconds)));
+        long secs = seconds - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(seconds));
+
+        return String.format("%d days, %02d hours, %02d minutes, %02d seconds", days, hours, minutes, secs);
     }
 }

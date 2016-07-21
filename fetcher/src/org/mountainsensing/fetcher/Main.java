@@ -50,6 +50,8 @@ public class Main {
         operations.put("get-date", new DateOperation.Get());
         operations.put("set-date", new DateOperation.Set());
 
+        operations.put("get-uptime", new UptimeOperation());
+
         operations.put("get-reboot", new RebootOperation.Get());
         operations.put("force-reboot", new RebootOperation.Force());
 
