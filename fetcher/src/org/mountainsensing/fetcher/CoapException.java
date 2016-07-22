@@ -119,6 +119,15 @@ public class CoapException extends IOException {
         return getCode() + " (" + getCode().name() + ")";
     }
 
+    /**
+     * Check if this error was caused by us (bad request), or occured else where (network / node side).
+     * @return True if this is a Client error, False otherwise.
+     */
+    public boolean isClientError() {
+        // A null response is not a client error
+        return response != null && ResponseCode.isClientError(response.getCode());
+    }
+
     @Override
     public String getMessage() {
         return super.getMessage() + ". Got CoAP response " + getError() + " using " + getMethod() + " on " + getURI();

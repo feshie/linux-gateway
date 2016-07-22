@@ -13,7 +13,7 @@ public class Options {
     @Parameter(names = {"-t", "--timeout"}, description = "CoAP timeout in seconds")
     private int timeout = 10;
 
-    @Parameter(names = {"-r", "--retries"}, description = "Number of retries before giving up on a node")
+    @Parameter(names = {"-r", "--retries"}, description = "Number of retries for node / comms errors before giving up. Client induced errors are never retried")
     private int retries = 3;
 
     @Parameter(names = {"-h", "--help"}, description = "Show usage help and exit", help = true)

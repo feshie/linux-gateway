@@ -126,6 +126,16 @@ public abstract class NodeOperation extends Operation {
                     // Reset the retry attempt on success
                     retryAttempt = 0;
                     continue;
+
+                } catch (CoapException e) {
+                    log.log(Level.WARNING, e.getMessage(), e);
+
+                    // If the error is our fault (bad request, file not found..), don't retry
+                    if (e.isClientError()) {
+                        retryAttempt = 0;
+                        continue;
+                    }
+
                 } catch (IOException e) {
                     log.log(Level.WARNING, e.getMessage(), e);
                 }
