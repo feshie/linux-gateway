@@ -107,8 +107,20 @@ public class CoapException extends IOException {
         return response == null ? null : response.getCode();
     }
 
+    /**
+     * Get a description of the error that occured.
+     * @return A String representing the error.
+     */
+    public String getError() {
+        if (getCode() == null) {
+            return "null";
+        }
+
+        return getCode() + " (" + getCode().name() + ")";
+    }
+
     @Override
     public String getMessage() {
-        return super.getMessage() + ". Got CoAP response " + getCode() + " using " + getMethod() + " on " + getURI();
+        return super.getMessage() + ". Got CoAP response " + getError() + " using " + getMethod() + " on " + getURI();
     }
 }
