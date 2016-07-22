@@ -111,8 +111,8 @@ public abstract class NodeOperation extends Operation {
 
             URI uri;
             try {
-                // This will add ://, and insert square brackets around IPv6 addresses
-                uri = new URI(PROTOCOL, node.getHostAddress(), "/" + getRessource(), null);
+                // This will add ://, and insert square brackets around IPv6 addresses. Trailing slash to make it easy to append to.
+                uri = new URI(PROTOCOL, node.getHostAddress(), "/" + getRessource() + "/", null);
             } catch (URISyntaxException e) {
                 log.log(Level.WARNING, e.getMessage(), e);
                 continue;
