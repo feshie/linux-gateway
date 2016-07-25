@@ -55,7 +55,7 @@ public class Main {
         operations.put("get-reboot", new RebootOperation.Get());
         operations.put("force-reboot", new RebootOperation.Force());
 
-        operations.put("get-routes", new RouteOperation.Get());
+        operations.put("get-routes", new RouteOperation());
 
         operations.put("ping", new PingOperation());
     }
