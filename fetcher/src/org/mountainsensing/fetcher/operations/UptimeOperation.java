@@ -8,6 +8,7 @@ package org.mountainsensing.fetcher.operations;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.text.DateFormat;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +39,7 @@ public class UptimeOperation extends NodeOperation {
     private static final DateFormat dateFormat = new UTCDateFormat();
 
     @Override
-    public void processNode(URI uri) throws IOException {
+    protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
         CoapClient client = new CoapClient(uri);
         CoapResponse response = client.get();
 

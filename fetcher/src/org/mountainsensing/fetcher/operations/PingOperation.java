@@ -7,6 +7,7 @@ package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameters;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +28,7 @@ public class PingOperation extends NodeOperation {
     }
 
     @Override
-    public void processNode(URI uri) throws IOException {
+    protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
         CoapClient client = new CoapClient(uri.getHost());
 
         long startTime = System.currentTimeMillis();

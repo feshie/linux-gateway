@@ -91,10 +91,11 @@ public abstract class NodeOperation extends Operation {
     /**
      * Process a node with this operation.
      * @param uri The URI representing the node / URI.
+     * @param nodeAddr The IP address of the node.
      * @throws org.mountainsensing.fetcher.CoapException If a CoAP I/O error occurs.
      * @throws java.io.IOException If an I/O error occurs other than CoAP.
      */
-    protected abstract void processNode(URI uri) throws CoapException, IOException;
+    protected abstract void processNode(URI uri, InetAddress nodeAddr) throws CoapException, IOException;
 
     /**
      * Test if the node in the last call to processNode requires further processing.
@@ -122,7 +123,7 @@ public abstract class NodeOperation extends Operation {
 
             do {
                 try {
-                    processNode(uri);
+                    processNode(uri, node);
                     // Reset the retry attempt on success
                     retryAttempt = 0;
                     continue;

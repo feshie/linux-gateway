@@ -8,6 +8,7 @@ package org.mountainsensing.fetcher.operations;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.text.DateFormat;
 import java.util.logging.Level;
@@ -41,7 +42,7 @@ public abstract class DateOperation extends NodeOperation {
     public static class Get extends DateOperation {
 
         @Override
-        public void processNode(URI uri) throws IOException {
+        protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
             CoapResponse response = client.get();
 
@@ -65,7 +66,7 @@ public abstract class DateOperation extends NodeOperation {
         private Integer epoch = null;
 
         @Override
-        public void processNode(URI uri) throws IOException {
+        protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
 
             // Get a date option represeting the current time, or if sepcified the command line param time

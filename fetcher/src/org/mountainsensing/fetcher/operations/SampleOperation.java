@@ -13,6 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -257,7 +258,7 @@ public abstract class SampleOperation extends NodeOperation {
     }
 
     @Override
-    public void processNode(URI uri) throws IOException {
+    protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
         processSample(getURI(uri, sampleId));
     }
 

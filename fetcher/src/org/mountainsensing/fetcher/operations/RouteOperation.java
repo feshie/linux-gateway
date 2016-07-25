@@ -7,6 +7,7 @@ package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameters;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +36,7 @@ public abstract class RouteOperation extends NodeOperation {
     public static class Get extends RouteOperation {
 
         @Override
-        public void processNode(URI uri) throws IOException {
+        public void processNode(URI uri, InetAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
             CoapResponse response = client.get();
 

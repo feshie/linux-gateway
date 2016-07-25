@@ -14,6 +14,7 @@ import com.beust.jcommander.ParametersDelegate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Map;
@@ -173,7 +174,7 @@ public abstract class ConfigOperation extends NodeOperation {
     public static class Get extends ConfigOperation {
 
         @Override
-        public void processNode(URI uri) throws CoapException, IOException {
+        protected void processNode(URI uri, InetAddress nodeAddr) throws CoapException, IOException {
             log.log(Level.INFO, "Config is \n{0}", configToString(getConfig(uri)));
         }
     }
@@ -199,7 +200,7 @@ public abstract class ConfigOperation extends NodeOperation {
         }
 
         @Override
-        public void processNode(URI uri) throws CoapException, IOException {
+        protected void processNode(URI uri, InetAddress nodeAddr) throws CoapException, IOException {
             Builder configBuilder = SensorConfig.newBuilder();
 
             configBuilder.setInterval(settings.interval);
@@ -236,7 +237,7 @@ public abstract class ConfigOperation extends NodeOperation {
         private Settings settings = new Settings();
 
         @Override
-        public void processNode(URI uri) throws CoapException, IOException {
+        protected void processNode(URI uri, InetAddress nodeAddr) throws CoapException, IOException {
             SensorConfig oldConfig = getConfig(uri);
             Builder editBuilder = SensorConfig.newBuilder();
 

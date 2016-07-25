@@ -7,6 +7,7 @@ package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameters;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,7 +33,7 @@ public abstract class RebootOperation extends NodeOperation {
     public static class Force extends RebootOperation {
 
         @Override
-        public void processNode(URI uri) throws IOException {
+        protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
             // Rediculously short timeout - we don't actually expect a response.
             client.setTimeout(1000);
@@ -48,7 +49,7 @@ public abstract class RebootOperation extends NodeOperation {
     public static class Get extends RebootOperation {
 
         @Override
-        public void processNode(URI uri) throws IOException {
+        protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
             CoapResponse response = client.get();
 
