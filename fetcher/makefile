@@ -21,6 +21,10 @@ MAIN:=org.mountainsensing.fetcher.Main
 # (--dirty will show when wordking dir is dirty, --always will always print a version, even if there is no tag)
 VERSION_CMD:=git describe --long --tags --dirty --always
 
+# Directory that will be used a base for the META-INF dir of the JAR
+# All of it's contents will be copied over
+SOURCE_MANIFEST_DIR:=META-INF/
+
 #############
 # Make options
 #############
@@ -98,11 +102,14 @@ COMPILE:=$(OBJDIR).compile
 # Folder JAR will be made from
 JARDIR:=$(OBJDIR)jar/
 
+# Files contained within the Source Manifest Dir (excluding hidden files)
+SOURCE_MANIFEST_FILES:=$(shell $(FIND) $(SOURCE_MANIFEST_DIR) -type f -not -name ".*")
+
 # Directory for the JAR manifest file
-MANIFESTDIR:=$(JARDIR)META-INF/
+MANIFEST_DIR:=$(JARDIR)META-INF/
 
 # Manifest file for JAR
-MANIFEST:=$(MANIFESTDIR)MANIFEST.MF
+MANIFEST:=$(MANIFEST_DIR)MANIFEST.MF
 
 # Version of the JAR
 VERSION:=$(shell version=`$(VERSION_CMD) 2>/dev/null`; if [ $$? -eq 0 ]; then echo "$$version"; else echo "UNKNOWN"; fi)
@@ -158,7 +165,8 @@ $(OBJDIR).tag_%: $(LIBRARY)%.jar | $(JARDIR)$(DIRTAG)
 	$Qtouch $@
 
 # Rule to build the jar manifest
-$(MANIFEST): $(VERSION_FILE) | $(MANIFESTDIR)$(DIRTAG)
+$(MANIFEST): $(VERSION_FILE) $(SOURCE_MANIFEST_FILES)
+	@cp -aur $(SOURCE_MANIFEST_DIR) $(MANIFEST_DIR)
 	@echo "Creating manifest $(@F)"
 	@echo "Manifest-Version: 1.0" > $@
 	@echo "Class-Path: ." >> $@
