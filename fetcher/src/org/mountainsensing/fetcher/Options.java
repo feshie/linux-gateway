@@ -31,6 +31,9 @@ public class Options {
     @Parameter(names = {"--log-file"}, description = "Log messages to a seperate file")
     private String logFile = null;
 
+    @Parameter(names = {"-n", "--nodes"}, description = "File in UNIX hosts format overriding system etc/hosts entries")
+    private String hostsFile = null;
+
     /**
      * Ensure a log Level is valid.
      */
@@ -118,5 +121,21 @@ public class Options {
      */
     public boolean hasLogFile() {
         return logFile != null;
+    }
+
+    /**
+     * Get the hosts file specified.
+     * @return The path to the hosts file, null if none was specified.
+     */
+    public String getHostsFile() {
+        return hostsFile;
+    }
+
+    /**
+     * Check if a hosts file was specified.
+     * @return True if so, false otherwise.
+     */
+    public boolean hasHostsFile() {
+        return hostsFile != null;
     }
 }

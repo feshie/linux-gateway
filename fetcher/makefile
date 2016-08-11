@@ -70,7 +70,8 @@ JAR:=jar
 # Options passed to java commands
 # Enable all warnings and treat warnings as errors
 # Disable static warnings for the protocol buffers
-JAVAC_OPTS+=-Xlint:all -Xlint:-static -Werror
+# -XDignore.symbol.file uses the internal rt.jar instead of the public facing one to supress warnings about using internal APIs
+JAVAC_OPTS+=-Xlint:all -Xlint:-static -Werror -XDignore.symbol.file
 JAR_OPTS+=cmf
 JAVA_OPTS+=
 
