@@ -89,16 +89,33 @@ public class Main {
      */
     private static ContextFormatter logFormatter;
 
-    public static void main(String[] args) {
-        Options options = new Options();
-        Operation operation = null;
+    /**
+     * True if logging has been setup and should be used, false if stderr should be used instead.
+     */
+    private static boolean isLoggingSetup = false;
 
+    public static void main(String[] args) {
         try {
-            operation = parseArgs(args, options);
+            start(args);
+
         } catch (ParameterException e) {
-            System.err.println(e.getMessage() + ". See --help");
-            System.exit(EXIT_FAILURE);
+            handleError(e.getMessage() + ". See --help", e);
+
+        } catch (Exception e) {
+            handleError(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Start the fetcher.
+     *
+     * @param args Command line args
+     * @throws ParameterException If an error occurs parsing the args
+     * @throws Exception If any other unrecoverable errror occurs
+     */
+    public static void start(String[] args) throws ParameterException, Exception {
+        Options options = new Options();
+        Operation operation = parseArgs(args, options);
 
         setupLogging(options);
 
@@ -124,8 +141,30 @@ public class Main {
      * @param isSuccess True if the execution was successful, false otherwise.
      */
     private static void exit(boolean isSuccess) {
-        log.log(Level.FINE, "Finished execution");
+        // Only log if the logger has been setup
+        if (isLoggingSetup) {
+            log.log(Level.FINE, "Finished execution");
+        }
+
         System.exit(isSuccess ? EXIT_SUCCESS : EXIT_FAILURE);
+    }
+
+    /**
+     * Handle a top-level, unrecoverable error.
+     * The error will be logged if logging is available, or printed to stderr.
+     *
+     * @param msg A message describing the error (Typically error.getMessage()).
+     * @param error A Throwable representing the error.
+     */
+    private static void handleError(String msg, Throwable error) {
+        // Only log if the logger has been setup
+        if (isLoggingSetup) {
+            log.log(Level.SEVERE, msg, error);
+        } else {
+            System.err.println(msg);
+        }
+
+        exit(false);
     }
 
     /**
@@ -204,6 +243,8 @@ public class Main {
                 log.log(Level.WARNING, "Unable to log to file: " + e.getMessage(), e);
             }
         }
+
+        isLoggingSetup = true;
     }
 
     /**
