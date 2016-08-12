@@ -99,17 +99,20 @@ public abstract class NodeOperation extends Operation {
      * @param nodes A list of nodes, which can be either literal IPv{4,6} addresses, or hostnames.
      * @return A list of IP addresses, with any unresolvable / unparseable nodes discarded.
      */
-    private static List<NodeAddress> getAddresses(List<String> nodes) {
+    private List<NodeAddress> getAddresses(List<String> nodes) {
         List<NodeAddress> addresses = new ArrayList<>();
 
         for (String node : nodes) {
+            setContext(node);
             try {
                 addresses.add(new NodeAddress(node));
             } catch (UnknownHostException e) {
-                log.log(Level.WARNING, "Unable to resolve address of " + node + " - skipping!", e);
+                log.log(Level.WARNING, "Unable to resolve address. Discarding node.", e);
             } catch (MalformedHostException e) {
                 // Shouldn't happen as they are validated before hand
                 log.log(Level.SEVERE, "Unexpected unparseable IP - bug in validation code? " + node, e);
+            } finally {
+                clearContext();
             }
         }
 
