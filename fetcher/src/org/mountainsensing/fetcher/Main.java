@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mountainsensing.fetcher.net.NodeNameService;
 import org.mountainsensing.fetcher.operations.*;
+import org.mountainsensing.fetcher.net.NodeNameService.LineTracker;
 
 /**
  * Main class. Parses command line arguments, and runs required command.
@@ -258,12 +259,19 @@ public class Main {
      *
      * @note This does not call {@link HostNameService#enable}.
      */
-    private static void setupResolver(Options options) throws IOException {
+    private static void setupResolver(final Options options) throws IOException {
         if (!options.hasHostsFile()) {
             return;
         }
 
-        NodeNameService.getInstance().parse(new FileInputStream(options.getHostsFile()));
+        logFormatter.setContext(options.getHostsFile());
+        NodeNameService.getInstance().parse(new FileInputStream(options.getHostsFile()), new LineTracker() {
+            @Override
+            public void setLine(int line) {
+                logFormatter.setContext(options.getHostsFile() + ":" + line);
+            }
+        });
+        logFormatter.clearContext();
     }
 
     /**

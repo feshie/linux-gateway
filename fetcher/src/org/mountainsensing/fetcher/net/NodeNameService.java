@@ -21,6 +21,19 @@ import java.util.regex.Pattern;
  */
 public class NodeNameService {
 
+    /**
+     * Interface allowing the parser to report what line it's at in the stream.
+     * This allows the callee to display more relevant log / error messages.
+     */
+    public interface LineTracker {
+
+        /**
+         * Report the line being parsed.
+         * @param line The line number of the line being parsed
+         */
+        public void setLine(int line);
+    }
+
     private static final Logger log = Logger.getLogger(NodeNameService.class.getName());
 
     /**
@@ -65,18 +78,43 @@ public class NodeNameService {
     /**
      * Parse a file, in the UNIX hosts file format.
      * Entries in the file will override identical entries in any previous files parsed.
-     * 
+     *
      * @param in A stream to the hosts file.
+     * @param tracker Tracker to use to report the current line we're parsing. Can be used to set
+     * the context for a Logger.
      * @throws IOException If an error occurs reading the file, or if it cannto be parsed.
+     * @see #parse(java.io.InputStream)
      */
-    public void parse(InputStream in) throws IOException {
+    public void parse(InputStream in, LineTracker tracker) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+
+            // The current line number we're parsing
+            int lineNum = 1;
 
             // Parse every line in the file
             for (String line = br.readLine(); line != null; line = br.readLine()) {
+                if (tracker != null) {
+                    tracker.setLine(lineNum);
+                }
+
                 parseLine(line);
+                lineNum++;
             }
         }
+    }
+
+    /**
+     * Parse a file, in the UNIX hosts file format.
+     *
+     * This behaves the same as {@link #parse(java.io.InputStream, org.mountainsensing.fetcher.net.NodeNameService.LineTracker)},
+     * but with no LineTracker.
+     *
+     * @param in A stream to the hosts file.
+     * @throws IOException If an error occurs reading the file, or if it cannto be parsed.
+     * @see #parse(java.io.InputStream, org.mountainsensing.fetcher.net.NodeNameService.LineTracker)
+     */
+    public void parse(InputStream in) throws IOException {
+        parse(in, null);
     }
 
     /**
@@ -99,15 +137,21 @@ public class NodeNameService {
         // Split the String on whitespace matches
         String[] tokens = WHITESPACE.split(line);
 
-        // We need at least an IP and a hostname
-        if (tokens.length < 2) {
-            throw new IOException("Missing hostname or IP address");
+        // We should always have one token from split()
+        if (tokens.length < 1) {
+            throw new IOException("Internal parser error: Missing host for line \'" + line + "\'");
         }
 
         String host = tokens[0];
 
         if (!NodeAddress.isAddress(host)) {
             throw new IOException("Invalid IP Address \'" + host + "\'");
+        }
+
+        // We need at least one hostname (we'll always have at least one token,
+        // as line will never be empty by this point).
+        if (tokens.length < 2) {
+            throw new IOException("Missing hostname(s) for IP \'" + host + "\'");
         }
 
         // host is a literal IP, so this will not cause any DNS lookups
