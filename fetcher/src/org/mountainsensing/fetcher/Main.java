@@ -128,6 +128,8 @@ public class Main {
             exit(false);
         }
 
+        operation.validate();
+
         setupResolver(options);
 
         Operation.setContextFormatter(logFormatter);

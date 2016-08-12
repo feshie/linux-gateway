@@ -78,7 +78,7 @@ public abstract class SampleOperation extends NodeOperation {
     private static final String RESSOURCE = "sample";
 
     @Parameter(names = {"-s", "--sample-id"}, validateWith = SampleExclusionValidator.class, description = "Sample id. " + LATEST_SAMPLE + " for latest sample.")
-    private int sampleId = LATEST_SAMPLE;
+    protected int sampleId = LATEST_SAMPLE;
 
     /**
      * Ensures that any Operations who implement other means of specifying the sample (ie --all) can verify both options aren't supplied.
@@ -112,6 +112,14 @@ public abstract class SampleOperation extends NodeOperation {
      */
     @Parameters(commandDescription = "Delete a sample from the node(s)")
     public static class Delete extends SampleOperation {
+
+        @Override
+        public void validate() {
+            // Check that a sampleId has been explicitly set
+            if (sampleId == LATEST_SAMPLE) {
+                throw new ParameterException("An explicit Sample id is required");
+            }
+        }
 
         @Override
         public void processSample(URI uri) throws IOException {

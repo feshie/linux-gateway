@@ -1,6 +1,7 @@
 package org.mountainsensing.fetcher;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParameterException;
 import org.mountainsensing.fetcher.utils.ContextFormatter;
 
 /**
@@ -56,4 +57,13 @@ public abstract class Operation {
      */
     public abstract void perform();
 
+    /**
+     * Perform any validation required.
+     * This can be used to validate command line parameters.
+     * This should be called before any call to {@link #perform()}.
+     * @throws Exception If the validation failed.
+     */
+    public void validate() throws Exception, ParameterException {
+
+    }
 }
