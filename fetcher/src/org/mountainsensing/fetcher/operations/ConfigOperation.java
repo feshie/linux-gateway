@@ -26,6 +26,7 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
+import org.mountainsensing.fetcher.net.NodeAddress;
 import org.mountainsensing.fetcher.utils.FormatUtils;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
 import org.mountainsensing.pb.Settings.SensorConfig;
@@ -174,7 +175,7 @@ public abstract class ConfigOperation extends NodeOperation {
     public static class Get extends ConfigOperation {
 
         @Override
-        protected void processNode(URI uri, InetAddress nodeAddr) throws CoapException, IOException {
+        protected void processNode(URI uri, NodeAddress nodeAddr) throws CoapException, IOException {
             log.log(Level.INFO, "Config is \n{0}", configToString(getConfig(uri)));
         }
     }
@@ -200,7 +201,7 @@ public abstract class ConfigOperation extends NodeOperation {
         }
 
         @Override
-        protected void processNode(URI uri, InetAddress nodeAddr) throws CoapException, IOException {
+        protected void processNode(URI uri, NodeAddress nodeAddr) throws CoapException, IOException {
             Builder configBuilder = SensorConfig.newBuilder();
 
             configBuilder.setInterval(settings.interval);
@@ -237,7 +238,7 @@ public abstract class ConfigOperation extends NodeOperation {
         private Settings settings = new Settings();
 
         @Override
-        protected void processNode(URI uri, InetAddress nodeAddr) throws CoapException, IOException {
+        protected void processNode(URI uri, NodeAddress nodeAddr) throws CoapException, IOException {
             SensorConfig oldConfig = getConfig(uri);
             Builder editBuilder = SensorConfig.newBuilder();
 

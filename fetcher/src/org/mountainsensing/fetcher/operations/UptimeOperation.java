@@ -19,6 +19,7 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
+import org.mountainsensing.fetcher.net.NodeAddress;
 import org.mountainsensing.fetcher.utils.EpochDate;
 import org.mountainsensing.fetcher.utils.FormatUtils;
 import org.mountainsensing.fetcher.utils.UTCDateFormat;
@@ -39,7 +40,7 @@ public class UptimeOperation extends NodeOperation {
     private static final DateFormat dateFormat = new UTCDateFormat();
 
     @Override
-    protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
+    protected void processNode(URI uri, NodeAddress nodeAddr) throws IOException {
         CoapClient client = new CoapClient(uri);
         CoapResponse response = client.get();
 

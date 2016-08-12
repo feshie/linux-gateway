@@ -5,11 +5,10 @@
  */
 package org.mountainsensing.fetcher.operations;
 
-import com.beust.jcommander.IStringConverter;
+import com.beust.jcommander.IParameterValidator;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -20,6 +19,8 @@ import java.util.logging.Logger;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.Operation;
+import org.mountainsensing.fetcher.net.MalformedHostException;
+import org.mountainsensing.fetcher.net.NodeAddress;
 
 /**
  * Common class / interface for all operations.
@@ -48,21 +49,17 @@ public abstract class NodeOperation extends Operation {
     /**
      * The list of nodes to process.
      */
-    @Parameter(description = "node(s)", converter=InetAddressConverter.class, required = true)
-    private List<InetAddress> nodes = new ArrayList<>();
+    @Parameter(description = "node(s)", validateWith = NodeValidator.class, required = true)
+    private List<String> nodes = new ArrayList<>();
 
     /**
-     * Convert a String to an InetAddress.
-     * This preforms a DNS lookup if required.
+     * Validator to check a String is a valid representation of a node (IPv4, Ipv6, or hostname).
      */
-    public static class InetAddressConverter implements IStringConverter<InetAddress> {
+    public static class NodeValidator implements IParameterValidator {
         @Override
-        public InetAddress convert(String value) {
-            try {
-                return InetAddress.getByName(value);
-            } catch (UnknownHostException e) {
-                // This should never happen, as JCommander calls the validator first
-                throw new ParameterException("Error resolving IP of node " + value, e);
+        public void validate(String name, String value) throws ParameterException {
+            if (!NodeAddress.isValid(value)) {
+                throw new ParameterException("\'" + value + "\' is not a valid IPv{4,6} address, or hostname");
             }
         }
     }
@@ -95,7 +92,7 @@ public abstract class NodeOperation extends Operation {
      * @throws org.mountainsensing.fetcher.CoapException If a CoAP I/O error occurs.
      * @throws java.io.IOException If an I/O error occurs other than CoAP.
      */
-    protected abstract void processNode(URI uri, InetAddress nodeAddr) throws CoapException, IOException;
+    protected abstract void processNode(URI uri, NodeAddress nodeAddr) throws CoapException, IOException;
 
     /**
      * Test if the node in the last call to processNode requires further processing.
@@ -105,15 +102,39 @@ public abstract class NodeOperation extends Operation {
         return false;
     }
 
+    /**
+     * Get the IP addresses from a list of nodes.
+     * @param nodes A list of nodes, which can be either literal IPv{4,6} addresses, or hostnames.
+     * @return A list of IP addresses, with any unresolvable / unparseable nodes discarded.
+     */
+    private static List<NodeAddress> getAddresses(List<String> nodes) {
+        List<NodeAddress> addresses = new ArrayList<>();
+
+        for (String node : nodes) {
+            try {
+                addresses.add(new NodeAddress(node));
+            } catch (UnknownHostException e) {
+                log.log(Level.WARNING, "Unable to resolve address of " + node + " - skipping!", e);
+            } catch (MalformedHostException e) {
+                // Shouldn't happen as they are validated before hand
+                log.log(Level.SEVERE, "Unexpected unparseable IP - bug in validation code? " + node, e);
+            }
+        }
+
+        return addresses;
+    }
+
     @Override
     public void perform() {
-        for (InetAddress node : nodes) {
+        List<NodeAddress> nodeAddrs = getAddresses(nodes);
+
+        for (NodeAddress node : nodeAddrs) {
             setContext(node.toString());
 
             URI uri;
             try {
                 // This will add ://, and insert square brackets around IPv6 addresses. Trailing slash to make it easy to append to.
-                uri = new URI(PROTOCOL, node.getHostAddress(), "/" + getRessource() + "/", null);
+                uri = new URI(PROTOCOL, node.getAddress().getHostAddress(), "/" + getRessource() + "/", null);
             } catch (URISyntaxException e) {
                 log.log(Level.WARNING, e.getMessage(), e);
                 continue;

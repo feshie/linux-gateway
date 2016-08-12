@@ -12,6 +12,7 @@ import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
+import org.mountainsensing.fetcher.net.NodeAddress;
 
 /**
  * Operation for pinging nodes (using CoAP).
@@ -28,7 +29,7 @@ public class PingOperation extends NodeOperation {
     }
 
     @Override
-    protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
+    protected void processNode(URI uri, NodeAddress nodeAddr) throws IOException {
         CoapClient client = new CoapClient(uri.getHost());
 
         long startTime = System.currentTimeMillis();

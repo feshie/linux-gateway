@@ -11,7 +11,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.LinkedHashMap;
@@ -21,7 +20,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.mountainsensing.fetcher.dns.HostsNameService;
+import org.mountainsensing.fetcher.net.NodeNameService;
 import org.mountainsensing.fetcher.operations.*;
 
 /**
@@ -117,9 +116,6 @@ public class Main {
      * @throws Exception If any other unrecoverable errror occurs
      */
     public static void start(String[] args) throws ParameterException, Exception {
-        // This needs to be done very early on for it to work
-        HostsNameService.enable();
-
         Options options = new Options();
         Operation operation = parseArgs(args, options);
 
@@ -268,7 +264,7 @@ public class Main {
             return;
         }
 
-        HostsNameService.parse(new FileInputStream(options.getHostsFile()));
+        NodeNameService.getInstance().parse(new FileInputStream(options.getHostsFile()));
     }
 
     /**

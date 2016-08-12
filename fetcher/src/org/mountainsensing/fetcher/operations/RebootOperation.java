@@ -16,6 +16,7 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
+import org.mountainsensing.fetcher.net.NodeAddress;
 
 /**
  * Operations for rebooting / getting reboot count from the nodes.
@@ -33,7 +34,7 @@ public abstract class RebootOperation extends NodeOperation {
     public static class Force extends RebootOperation {
 
         @Override
-        protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
+        protected void processNode(URI uri, NodeAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
             // Rediculously short timeout - we don't actually expect a response.
             client.setTimeout(1000);
@@ -49,7 +50,7 @@ public abstract class RebootOperation extends NodeOperation {
     public static class Get extends RebootOperation {
 
         @Override
-        protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
+        protected void processNode(URI uri, NodeAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
             CoapResponse response = client.get();
 

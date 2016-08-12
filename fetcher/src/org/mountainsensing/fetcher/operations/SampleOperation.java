@@ -24,6 +24,7 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
+import org.mountainsensing.fetcher.net.NodeAddress;
 import org.mountainsensing.fetcher.utils.EpochDate;
 import org.mountainsensing.fetcher.utils.FormatUtils;
 import org.mountainsensing.fetcher.utils.ProtoBufUtils;
@@ -258,7 +259,7 @@ public abstract class SampleOperation extends NodeOperation {
     }
 
     @Override
-    protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
+    protected void processNode(URI uri, NodeAddress nodeAddr) throws IOException {
         processSample(getURI(uri, sampleId));
     }
 

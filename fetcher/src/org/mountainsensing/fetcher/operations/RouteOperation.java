@@ -25,6 +25,7 @@ import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
+import org.mountainsensing.fetcher.net.NodeAddress;
 import org.mountainsensing.fetcher.utils.RouteGraph;
 
 /**
@@ -45,13 +46,13 @@ public class RouteOperation extends NodeOperation {
     /**
      * All of the route information we've gathered.
      */
-    private final Map<InetAddress, RouteInfo> routes = new LinkedHashMap<>();
+    private final Map<NodeAddress, RouteInfo> routes = new LinkedHashMap<>();
 
     /**
      * The routes page on the nodes only returns the last 2 bytes of the IPv6 address.
      * We can recover the full ip addresse's from keeping track of what nodes we've talked to.
      */
-    private final Map<String, InetAddress> realAddresses = new HashMap<>();
+    private final Map<String, NodeAddress> realAddresses = new HashMap<>();
 
     @Parameter(names = {"-g", "--graph"}, description = "Write a DOT graph of routes / neighbors to this file")
     private String graphPath;
@@ -82,9 +83,9 @@ public class RouteOperation extends NodeOperation {
      * This is used to keep track of what "ids" (2 bytes returned by the ressource) map to what real addresses.
      * @param addr The address processed.
      */
-    private void registerNodeAddress(InetAddress addr) {
+    private void registerNodeAddress(NodeAddress addr) {
         // ID of the node as used in the routes ressource
-        String nodeId = addr.getHostAddress().substring(addr.getHostAddress().length() - NODE_ID_SIZE);
+        String nodeId = addr.getAddress().getHostAddress().substring(addr.getAddress().getHostAddress().length() - NODE_ID_SIZE);
 
         // If the id is already known to us, but with a different address the graph is going to be messed up
         if (realAddresses.containsKey(nodeId) && !realAddresses.get(nodeId).equals(addr)) {
@@ -108,7 +109,7 @@ public class RouteOperation extends NodeOperation {
         }
 
         // Otherwise get the best String representation of it's full IPv6 address
-        return inetAddressToString(realAddresses.get(node));
+        return nodeAddressToString(realAddresses.get(node));
     }
 
     /**
@@ -119,15 +120,9 @@ public class RouteOperation extends NodeOperation {
      * 
      * @note This will only use cached hostname information, it will not make any reverse DNS queries.
      */
-    private String inetAddressToString(InetAddress addr) {
-        // We don't want to preform any lookups if we were given IPs
-        // Only way to check is calling toString(), and parsing the "hostname/IP" string
-        // Starting with a slash impliers their is no cached hostname to use
-        if (addr.toString().startsWith("/")) {
-            return addr.getHostAddress();
-        } else {
-            return addr.getHostName();
-        }
+    private String nodeAddressToString(NodeAddress addr) {
+        // We don't want to preform any DNS lookups if we were given IPs
+        return addr.hasHostName() ? addr.getHostName() : addr.getAddress().getHostAddress();
     }
 
     @Override
@@ -155,9 +150,9 @@ public class RouteOperation extends NodeOperation {
         RouteGraph graph = new RouteGraph(RESSOURCE);
 
         // Add all the edges in, looking up "real" ip addresses as we find them
-        for (InetAddress node : routes.keySet()) {
+        for (NodeAddress node : routes.keySet()) {
             RouteInfo info = routes.get(node);
-            String nodeId = inetAddressToString(node);
+            String nodeId = nodeAddressToString(node);
 
             // Add the parent as a route
             graph.addRoute(nodeId, getRealAddressString(info.parent));
@@ -176,7 +171,7 @@ public class RouteOperation extends NodeOperation {
     }
 
     @Override
-    protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
+    protected void processNode(URI uri, NodeAddress nodeAddr) throws IOException {
         registerNodeAddress(nodeAddr);
 
         CoapClient client = new CoapClient(uri);

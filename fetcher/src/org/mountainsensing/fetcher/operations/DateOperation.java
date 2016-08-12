@@ -18,6 +18,7 @@ import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
+import org.mountainsensing.fetcher.net.NodeAddress;
 import org.mountainsensing.fetcher.utils.EpochDate;
 import org.mountainsensing.fetcher.utils.UTCEpochDateFormat;
 
@@ -42,7 +43,7 @@ public abstract class DateOperation extends NodeOperation {
     public static class Get extends DateOperation {
 
         @Override
-        protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
+        protected void processNode(URI uri, NodeAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
             CoapResponse response = client.get();
 
@@ -66,7 +67,7 @@ public abstract class DateOperation extends NodeOperation {
         private Integer epoch = null;
 
         @Override
-        protected void processNode(URI uri, InetAddress nodeAddr) throws IOException {
+        protected void processNode(URI uri, NodeAddress nodeAddr) throws IOException {
             CoapClient client = new CoapClient(uri);
 
             // Get a date option represeting the current time, or if sepcified the command line param time
