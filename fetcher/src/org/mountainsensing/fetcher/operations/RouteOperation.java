@@ -126,9 +126,9 @@ public class RouteOperation extends NodeOperation {
     }
 
     @Override
-    public void perform() {
+    public void perform(int timeout, int retries) {
         // Get NodeOperation.perform() to talk to all the nodes
-        super.perform();
+        super.perform(timeout, retries);
 
         // If we aren't writing a graph, we're done
         if (graphPath == null) {

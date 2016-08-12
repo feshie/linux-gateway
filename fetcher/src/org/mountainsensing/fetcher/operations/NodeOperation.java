@@ -42,11 +42,6 @@ public abstract class NodeOperation extends Operation {
     private static final String PROTOCOL = "coap";
 
     /**
-     * The amount of retries.
-     */
-    private static int retries;
-
-    /**
      * The list of nodes to process.
      */
     @Parameter(description = "node(s)", validateWith = NodeValidator.class, required = true)
@@ -65,13 +60,10 @@ public abstract class NodeOperation extends Operation {
     }
 
     /**
-     * Initialise the NodeOperations.
-     * @param retries The amount of times to try before giving up.
+     * Set the CoAP timeout.
      * @param timeout The timeout in seconds.
      */
-    public static void init(int retries, int timeout) {
-        NodeOperation.retries = retries;
-
+    private void setTimeout(int timeout) {
         // Don't save / read from the Californium.properties file
         NetworkConfig config = NetworkConfig.createStandardWithoutFile();
         // Nedd to scale the timeout from seconds to ms
@@ -125,7 +117,9 @@ public abstract class NodeOperation extends Operation {
     }
 
     @Override
-    public void perform() {
+    public void perform(int timeout, int retries) {
+        setTimeout(timeout);
+
         List<NodeAddress> nodeAddrs = getAddresses(nodes);
 
         for (NodeAddress node : nodeAddrs) {

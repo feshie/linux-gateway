@@ -54,8 +54,10 @@ public abstract class Operation {
      * Perform the operation.
      * This is a blocking (ie synchronous) call, and may do
      * a substantial amount of IO (ie be very long)
+     * @param timeout A requested timeout for the operation to complete, in seconds.
+     * @param retries The number of times this operation can retry before aborting.
      */
-    public abstract void perform();
+    public abstract void perform(int timeout, int retries);
 
     /**
      * Perform any validation required.

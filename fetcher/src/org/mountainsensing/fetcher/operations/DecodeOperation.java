@@ -47,7 +47,7 @@ public abstract class DecodeOperation extends Operation {
     private boolean isHex = false;
 
     @Override
-    public void perform() {
+    public void perform(int timeout, int retries) {
         // Store humman readable names for the inputs - usefull for setting the context
         Map<InputStream, String> inputs = new LinkedHashMap<>();
 
