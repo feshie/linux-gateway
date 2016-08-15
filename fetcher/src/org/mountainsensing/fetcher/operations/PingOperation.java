@@ -7,7 +7,6 @@ package org.mountainsensing.fetcher.operations;
 
 import com.beust.jcommander.Parameters;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,7 +40,7 @@ public class PingOperation extends NodeOperation {
             log.log(Level.INFO, "Node is up, RTT {0}ms", endTime -startTime);
 
         } else {
-            log.log(Level.INFO, "No response");
+            throw new IOException("No response");
         }
     }
 }
