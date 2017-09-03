@@ -1,3 +1,3 @@
 #!/bin/bash
-autossh  -f -M 0 login.ecs.soton.ac.uk -R 9022:localhost:22 -Nn
+autossh  -f -M 0 login.ecs.soton.ac.uk -R 9022:localhost:22 -Nn -4
 #-oServerAliveInterval 60 # -oServerAliveCount 3
