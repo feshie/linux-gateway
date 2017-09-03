@@ -5,18 +5,14 @@
  */
 package org.mountainsensing.fetcher.operations;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.text.DateFormat;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
-import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.mountainsensing.fetcher.CoapException;
 import org.mountainsensing.fetcher.CoapException.Method;
 import org.mountainsensing.fetcher.net.NodeAddress;
@@ -59,7 +55,7 @@ public class UptimeOperation extends NodeOperation {
             return;
         }
 
-        throw new CoapException(uri, Method.GET, response, "Failed to get date");
+        throw new CoapException(uri, Method.GET, response, "Failed to get uptime");
     }
 
     @Override

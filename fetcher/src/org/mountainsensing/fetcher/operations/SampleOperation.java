@@ -13,7 +13,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -135,12 +134,25 @@ public abstract class SampleOperation extends NodeOperation {
     public static class Grab extends SampleOperation {
 
         @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples")
-        private String dir = "/ms/queue/";
+        private String dirPath = "/ms/queue/";
+
+        /**
+         * Actual directory to use.
+         * Will be created by {@link #validate()}
+         * (Can't use JCommander param validation, as it doesn't validate the default value).
+         */
+        private File dir;
 
         @Parameter(names = {"-a", "--all"}, validateWith = SampleExclusionValidator.class, description = "Grab all samples from the node(s). This cannot be used in conjunction with --sample")
         private boolean shouldProcessAll = false;
 
         private boolean hasReachedEnd;
+
+        @Override
+        public void validate() throws IOException {
+            // Make the directory we'll use for output
+            dir = mkDir(dirPath);
+        }
 
         @Override
         public void processSample(URI uri) throws IOException, CoapException {
@@ -188,7 +200,20 @@ public abstract class SampleOperation extends NodeOperation {
         private static final String SAMPLE_END = "+++SERIALDUMP+++SAMPLE+++END+++";
 
         @Parameter(names = {"-d", "--destination"}, description = "Directory in which to output protocol buffer encoded samples. Only supported with '--is-serial-dump'")
-        private String dir;
+        private String dirPath;
+
+        /**
+         * Actual directory to use.
+         * Will be created by {@link #validate()}
+         * (Can't use JCommander param validation, as it doesn't validate the default value).
+         */
+        private File dir;
+
+        @Override
+        public void validate() throws IOException {
+            // Make the directory we'll use for output - null dirPath will be passed through to dir
+            dir = mkDir(dirPath);
+        }
 
         @Override
         protected void decode(byte[] data, String nodeId) throws IOException {
@@ -256,14 +281,44 @@ public abstract class SampleOperation extends NodeOperation {
      * @param sample The sample to save.
      * @throws IOException If an error occurs encoding the sample, or writing to the file.
      */
-    protected static void saveSample(String dir, String suffix, Sample sample) throws IOException {
-        File file = new File(dir + System.nanoTime() + "_" + suffix);
+    protected static void saveSample(File dir, String suffix, Sample sample) throws IOException {
+        File file = new File(dir, System.nanoTime() + "_" + suffix);
 
         try (FileOutputStream fileStream = new FileOutputStream(file)) {
             sample.writeDelimitedTo(fileStream);
             fileStream.flush();
             log.log(Level.INFO, "Saved sample to file {0}", file);
         }
+    }
+
+    /**
+     * Get a Directory pointing to a given path.
+     * This will create any missing directories as required.
+     *
+     * @param path The path to the desired directory.
+     * @return Null if path is null. Otherwise a File pointing to the created / existing directory.
+     * @throws IOException If the path already exists and is not a directory,
+     * If creating the path failed.
+     */
+    protected static File mkDir(String path) throws IOException {
+        // Pass through any nulls - they indicate optional unprovided values
+        if (path == null) {
+            return null;
+        }
+
+        File directory = new File(path);
+
+        // If the directory exists, but isn't a directory
+        if (directory.exists() && !directory.isDirectory()) {
+            throw new IOException("Path exists and is not a directory: " + path);
+        }
+
+        // If the directory doesn't exist, and we couldn't create it
+        if (!directory.exists() && !directory.mkdirs()) {
+            throw new IOException("Unable to create path (or parent thereof): " + path);
+        }
+
+        return directory;
     }
 
     @Override
